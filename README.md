@@ -1,2 +1,2 @@
 # Gamified-videoconferencing-application
-Making a Gamified videoconferencing application for a college project.
+Making a gamified videoconferencing application for a college project.

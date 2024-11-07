@@ -1,36 +1,80 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="styles.css">
+    <!-- CodeMirror CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons - Movido al head para mejor rendimiento -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <title>Videoconferencia con Editor de Código</title>
 </head>
+
 <body>
     <div id="main-container">
-        <div id="activity-room">
-            <!-- Aquí irá el editor de código en el futuro -->
+        <div id="py-code">
+            <div id="editor-container">
+                <textarea id="code-editor"></textarea>
+                <div class="editor-buttons">
+                    <button id="run-code" class="btn primary">
+                        <i class="fas fa-play"></i>
+                        <span>Run</span>
+                    </button>
+                </div>
+                <div id="code-output"></div>
+            </div>
         </div>
         <div id="general-buttons">
-            <button id="activity-room-button">Activity Room</button>
-            <button id="other-button">Other Button</button>
+            <button id="activity-room-button" class="btn">
+                <i class="fas fa-gamepad"></i>
+                <span>Room</span>
+            </button>
+            <button id="chat-button" class="btn">
+                <i class="fas fa-comment"></i>
+                <span>Chat</span>
+            </button>
+            <button id="mute-button" class="btn">
+                <i class="fas fa-microphone"></i>
+                <span>Mute</span>
+            </button>
+            <button id="hide-button" class="btn">
+                <i class="fas fa-video"></i>
+                <span>Hide</span>
+            </button>
         </div>
     </div>
 
     <div id="video-section">
-        <div id="local-video">
-            <video id="localVideo" autoplay muted></video>
-            <div class="video-buttons">
-                <button id="mute-button">Mute</button>
-                <button id="hide-button">Hide</button>
+        <div class="video-group">
+            <h3 class="video-section-title">Local video:</h3>
+            <div id="local-video">
+                <div class="video-wrapper">
+                    <video id="localVideo" autoplay muted></video>
+                    <div class="video-controls">
+                        <div class="video-status">
+                            <i class="fas fa-microphone-slash audio-status hidden"></i>
+                            <i class="fas fa-video-slash video-status hidden"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
-        
-        <div id="remote-videos">
-            <div id="videoContainer"></div>
+
+        <div class="video-group">
+            <h3 class="video-section-title">Remote videos:</h3>
+            <div id="remote-videos">
+                <div id="videoContainer"></div>
+            </div>
         </div>
     </div>
-    
+
+    <!-- CodeMirror Scripts before bundle.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
     <script src="bundle.js"></script>
 </body>
+
 </html>

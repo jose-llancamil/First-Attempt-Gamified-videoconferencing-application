@@ -12,10 +12,12 @@
   "description": "Gamified videoconferencing app",
   "type": "module",
   "dependencies": {
+    "codemirror": "^5.65.2",
     "express": "^4.21.1",
     "httpolyglot": "^0.1.2",
     "mediasoup": "^3.14.16",
     "mediasoup-client": "^3.7.17",
+    "python-shell": "^5.0.0",
     "socket.io": "^4.8.0",
     "socket.io-client": "^4.8.0"
   },

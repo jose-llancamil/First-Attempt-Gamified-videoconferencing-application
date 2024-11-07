@@ -21136,8 +21136,9 @@ let producerTransport
 let consumerTransports = []
 let audioProducer
 let videoProducer
-let consumer
-let isProducer = false
+let isAudioMuted = false;
+let isVideoHidden = false;
+let localStream = null;
 
 /* Estos parámetros optimizan la calidad de video ajustando el bitrate máximo. */
 let params = {
@@ -21170,12 +21171,77 @@ let consumingTransports = [];
 /* Esta función permite al cliente unirse a la sala una vez que ha capturado el
 audio y video localmente, preparando los medios para su envío. */
 const streamSuccess = (stream) => {
+  localStream = stream;
   localVideo.srcObject = stream
 
   audioParams = { track: stream.getAudioTracks()[0], ...audioParams };
   videoParams = { track: stream.getVideoTracks()[0], ...videoParams };
 
+  setupMediaControls();
+
   joinRoom()
+}
+
+// Función para configurar los controles de medios
+const setupMediaControls = () => {
+  const muteButton = document.getElementById('mute-button');
+  const hideButton = document.getElementById('hide-button');
+
+  muteButton.addEventListener('click', toggleAudio);
+  hideButton.addEventListener('click', toggleVideo);
+}
+
+// Función para alternar el audio
+const toggleAudio = async () => {
+  if (!audioProducer) return;
+
+  const muteButton = document.getElementById('mute-button');
+  isAudioMuted = !isAudioMuted;
+
+  if (isAudioMuted) {
+    await audioProducer.pause();
+    muteButton.innerHTML = '<i class="fas fa-microphone-slash"></i><span>Unmute</span>';
+    muteButton.classList.add('muted');
+  } else {
+    await audioProducer.resume();
+    muteButton.innerHTML = '<i class="fas fa-microphone"></i><span>Mute</span>';
+    muteButton.classList.remove('muted');
+  }
+
+  // También silenciamos el track local
+  if (localStream) {
+    localStream.getAudioTracks().forEach(track => {
+      track.enabled = !isAudioMuted;
+    });
+  }
+}
+
+// Función para alternar el video
+const toggleVideo = async () => {
+  if (!videoProducer) return;
+
+  const hideButton = document.getElementById('hide-button');
+  isVideoHidden = !isVideoHidden;
+
+  if (isVideoHidden) {
+    await videoProducer.pause();
+    hideButton.innerHTML = '<i class="fas fa-video-slash"></i><span>Show</span>';
+    hideButton.classList.add('hidden');
+    // Opcionalmente, mostrar una imagen o fondo negro cuando el video está oculto
+    localVideo.classList.add('video-hidden');
+  } else {
+    await videoProducer.resume();
+    hideButton.innerHTML = '<i class="fas fa-video"></i><span>Hide</span>';
+    hideButton.classList.remove('hidden');
+    localVideo.classList.remove('video-hidden');
+  }
+
+  // También deshabilitamos el track de video local
+  if (localStream) {
+    localStream.getVideoTracks().forEach(track => {
+      track.enabled = !isVideoHidden;
+    });
+  }
 }
 
 /* Conecta el cliente con el router de MediaSoup en la sala especificada. */
@@ -21274,6 +21340,14 @@ gestionando eventos para casos en los que la pista o el transporte se detienen. 
 const connectSendTransport = async () => {
   audioProducer = await producerTransport.produce(audioParams);
   videoProducer = await producerTransport.produce(videoParams);
+
+  // Si estaban muteados/ocultos antes de la reconexión, aplicar el estado
+  if (isAudioMuted && audioProducer) {
+    await audioProducer.pause();
+  }
+  if (isVideoHidden && videoProducer) {
+    await videoProducer.pause();
+  }
 
   audioProducer.on('trackended', () => {
     console.log('audio track ended')
@@ -21390,4 +21464,73 @@ socket.on('producer-closed', ({ remoteProducerId }) => {
   consumerTransports = consumerTransports.filter(transportData => transportData.producerId !== remoteProducerId)
   videoContainer.removeChild(document.getElementById(`td-${remoteProducerId}`))
 })
+
+const codeSocket = io("/code-editor")
+
+// configuración del editor
+document.addEventListener('DOMContentLoaded', () => {
+    let editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+        mode: 'python',
+        theme: 'monokai',
+        lineNumbers: true,
+        autoCloseBrackets: true,
+        matchBrackets: true,
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: false,
+        lineWrapping: true
+    });
+
+    // Configurar tamaño inicial
+    editor.setSize(null, '100%');
+
+    // Conectar con la sala del editor
+    codeSocket.emit('join-editor-room', roomName);
+
+    // Manejar cambios en el editor
+    let timeout = null;
+    editor.on('change', (cm, change) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+            codeSocket.emit('code-change', {
+                roomName,
+                code: cm.getValue()
+            });
+        }, 500);
+    });
+
+    // Manejar actualizaciones de código
+    codeSocket.on('code-update', (code) => {
+        if (editor && code !== editor.getValue()) {
+            const cursor = editor.getCursor();
+            editor.setValue(code);
+            editor.setCursor(cursor);
+        }
+    });
+
+    // Manejar resultados de ejecución
+    codeSocket.on('execution-result', (result) => {
+        const outputDiv = document.getElementById('code-output');
+        if (result.error) {
+            outputDiv.innerHTML = `Error: ${result.error}`;
+            outputDiv.className = 'error-output';
+        } else {
+            outputDiv.innerHTML = result.output || 'Ejecución completada';
+            outputDiv.className = 'success-output';
+        }
+    });
+
+    // Configurar botones
+    document.getElementById('run-code').addEventListener('click', () => {
+        const code = editor.getValue();
+        const outputDiv = document.getElementById('code-output');
+        outputDiv.innerHTML = 'Ejecutando código...';
+        outputDiv.className = '';
+
+        codeSocket.emit('execute-code', {
+            roomName,
+            code
+        });
+    });
+});
 },{"mediasoup-client":66,"socket.io-client":81}]},{},[96]);

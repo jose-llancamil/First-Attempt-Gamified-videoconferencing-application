@@ -5,18 +5,19 @@ import fs from 'fs'
 import path from 'path'
 import { Server } from 'socket.io'
 import mediasoup from 'mediasoup'
+import { PythonShell } from 'python-shell';
 
 const app = express()
 const __dirname = path.resolve()
 
 // Configuración de Express para rutas
 app.get('*', (req, res, next) => {
-  const path = '/sfu/'
+  const path = '/api/'
   if (req.path.indexOf(path) == 0 && req.path.length > path.length) return next()
-  res.send(`You need to specify a room name in the path e.g. 'https://127.0.0.1:3000/sfu/room'`)
+  res.send(`You need to specify a room name in the path e.g: https://127.0.0.1:3000/api/room`)
 })
 
-app.use('/sfu/:room', express.static(path.join(__dirname, 'public')))
+app.use('/api/:room', express.static(path.join(__dirname, 'public')))
 
 // Configuración HTTPS
 const options = {
@@ -36,11 +37,11 @@ const connections = io.of('/mediasoup')
 
 // Inicialización del Worker de MediaSoup y variables globales
 let worker
-let rooms = {}         
-let peers = {}          
-let transports = []    
-let producers = []      
-let consumers = []      
+let rooms = {}
+let peers = {}
+let transports = []
+let producers = []
+let consumers = []
 
 const createWorker = async () => {
   worker = await mediasoup.createWorker({
@@ -94,8 +95,8 @@ connections.on('connection', async socket => {
     return items
   }
 
-/* También se gestionan las desconexiones de los clientes, 
-eliminando sus datos de las variables globales. */
+  /* También se gestionan las desconexiones de los clientes, 
+  eliminando sus datos de las variables globales. */
   socket.on('disconnect', () => {
     console.log('peer disconnected')
     consumers = removeItems(consumers, socket.id, 'consumer')
@@ -109,27 +110,27 @@ eliminando sus datos de las variables globales. */
     }
   })
 
-// La función joinRoom permite que un cliente se una a una sala específica.
+  // La función joinRoom permite que un cliente se una a una sala específica.
   socket.on('joinRoom', async ({ roomName }, callback) => {
     const router1 = await createRoom(roomName, socket.id)
     peers[socket.id] = { // Se almacena el cliente en el objeto peers
       socket,
-      roomName,          
+      roomName,
       transports: [],
       producers: [],
       consumers: [],
       peerDetails: {
         name: '',
-        isAdmin: false,  
+        isAdmin: false,
       }
     }
-// Se envían las capacidades RTP (codecs y formatos) al cliente
+    // Se envían las capacidades RTP (codecs y formatos) al cliente
     const rtpCapabilities = router1.rtpCapabilities
     callback({ rtpCapabilities })
   })
 
-/* Se gestiona la creación de una sala y su router.
-Si la sala ya existe, se reutiliza el router; de lo contrario, se crea un nuevo router usando createRouter. */
+  /* Se gestiona la creación de una sala y su router.
+  Si la sala ya existe, se reutiliza el router; de lo contrario, se crea un nuevo router usando createRouter. */
   const createRoom = async (roomName, socketId) => {
     let router1
     let peers = []
@@ -147,7 +148,7 @@ Si la sala ya existe, se reutiliza el router; de lo contrario, se crea un nuevo 
     return router1
   }
 
-/* Crea un WebRtcTransport, que gestiona la transmisión de medios. */  
+  /* Crea un WebRtcTransport, que gestiona la transmisión de medios. */
   socket.on('createWebRtcTransport', async ({ consumer }, callback) => {
     const roomName = peers[socket.id].roomName
     const router = rooms[roomName].router
@@ -168,8 +169,8 @@ Si la sala ya existe, se reutiliza el router; de lo contrario, se crea un nuevo 
       })
   })
 
-/* Estas funciones agregan los transportes, productores, y consumidores a sus listas respectivas
-y actualizan el objeto peers para registrar los recursos asociados a cada cliente. */  
+  /* Estas funciones agregan los transportes, productores, y consumidores a sus listas respectivas
+  y actualizan el objeto peers para registrar los recursos asociados a cada cliente. */
   const addTransport = (transport, roomName, consumer) => {
     transports = [
       ...transports,
@@ -215,10 +216,10 @@ y actualizan el objeto peers para registrar los recursos asociados a cada client
     }
   }
 
-/* Gestión de Productores y Consumidores */
+  /* Gestión de Productores y Consumidores */
 
-/* Devuelve una lista de productores al cliente. 
-Esto permite a un cliente saber qué flujos de medios están disponibles en la sala. */
+  /* Devuelve una lista de productores al cliente. 
+  Esto permite a un cliente saber qué flujos de medios están disponibles en la sala. */
   socket.on('getProducers', callback => {
     const { roomName } = peers[socket.id]
     let producerList = []
@@ -230,8 +231,8 @@ Esto permite a un cliente saber qué flujos de medios están disponibles en la s
     callback(producerList)
   })
 
-/* Informa a los consumidores en la sala cuando se une un nuevo productor, 
-para que puedan consumir su flujo de medios. */
+  /* Informa a los consumidores en la sala cuando se une un nuevo productor, 
+  para que puedan consumir su flujo de medios. */
   const informConsumers = (roomName, socketId, id) => {
     console.log(`just joined, id ${id} ${roomName}, ${socketId}`)
     producers.forEach(producerData => {
@@ -247,15 +248,15 @@ para que puedan consumir su flujo de medios. */
     return producerTransport.transport
   }
 
-/* Conecta el transporte WebRTC usando los parámetros DTLS proporcionados por el cliente. */
+  /* Conecta el transporte WebRTC usando los parámetros DTLS proporcionados por el cliente. */
   socket.on('transport-connect', ({ dtlsParameters }) => {
     console.log('DTLS PARAMS... ', { dtlsParameters })
-    
+
     getTransport(socket.id).connect({ dtlsParameters })
   })
 
-/* Inicia la producción de medios (audio/video) en el transporte conectado y llama 
-a informConsumers para notificar a otros participantes. */
+  /* Inicia la producción de medios (audio/video) en el transporte conectado y llama 
+  a informConsumers para notificar a otros participantes. */
   socket.on('transport-produce', async ({ kind, rtpParameters, appData }, callback) => {
     const producer = await getTransport(socket.id).produce({
       kind,
@@ -269,16 +270,16 @@ a informConsumers para notificar a otros participantes. */
       console.log('transport for this producer closed ')
       producer.close()
     })
-// Devuelve el ID del productor al cliente para confirmar la producción.
+    // Devuelve el ID del productor al cliente para confirmar la producción.
     callback({
       id: producer.id,
-      producersExist: producers.length>1 ? true : false
+      producersExist: producers.length > 1 ? true : false
     })
   })
 
-/*Consumo de Medios*/
+  /*Consumo de Medios*/
 
-// Conecta el transporte WebRTC de un consumidor.
+  // Conecta el transporte WebRTC de un consumidor.
   socket.on('transport-recv-connect', async ({ dtlsParameters, serverConsumerTransportId }) => {
     console.log(`DTLS PARAMS: ${dtlsParameters}`)
     const consumerTransport = transports.find(transportData => (
@@ -287,8 +288,8 @@ a informConsumers para notificar a otros participantes. */
     await consumerTransport.connect({ dtlsParameters })
   })
 
-/* Crea un Consumer para consumir el flujo de un productor existente en la sala y 
-devuelve los parámetros necesarios al cliente para recibir el flujo. */
+  /* Crea un Consumer para consumir el flujo de un productor existente en la sala y 
+  devuelve los parámetros necesarios al cliente para recibir el flujo. */
   socket.on('consume', async ({ rtpCapabilities, remoteProducerId, serverConsumerTransportId }, callback) => {
     try {
       const { roomName } = peers[socket.id]
@@ -306,7 +307,7 @@ devuelve los parámetros necesarios al cliente para recibir el flujo. */
           rtpCapabilities,
           paused: true,
         })
-// transportclose y producerclose aseguran que el consumidor se cierre si el productor o el transporte se desconectan.
+        // transportclose y producerclose aseguran que el consumidor se cierre si el productor o el transporte se desconectan.
         consumer.on('transportclose', () => {
           console.log('transport close from consumer')
         })
@@ -319,7 +320,7 @@ devuelve los parámetros necesarios al cliente para recibir el flujo. */
           consumers = consumers.filter(consumerData => consumerData.consumer.id !== consumer.id)
         })
         addConsumer(consumer, roomName)
-// del consumidor se extraen los siguientes parámetros para enviarlos al cliente
+        // del consumidor se extraen los siguientes parámetros para enviarlos al cliente
         const params = {
           id: consumer.id,
           producerId: remoteProducerId,
@@ -328,7 +329,7 @@ devuelve los parámetros necesarios al cliente para recibir el flujo. */
           serverConsumerId: consumer.id,
         }
 
-// Se envian los parámetros al cliente
+        // Se envian los parámetros al cliente
         callback({ params })
       }
     } catch (error) {
@@ -384,3 +385,84 @@ const createWebRtcTransport = async (router) => {
     }
   })
 }
+
+const codeEditor = io.of('/code-editor')
+const roomCode = new Map()
+
+codeEditor.on('connection', (socket) => {
+  console.log('Code editor client connected:', socket.id)
+
+  socket.on('join-editor-room', (roomName) => {
+    console.log('Client joining editor room:', roomName); // Añadido para debug
+    socket.join(roomName)
+    const currentCode = roomCode.get(roomName) || ''
+    socket.emit('code-update', currentCode)
+  })
+
+  socket.on('code-change', ({ roomName, code }) => {
+    console.log('Code changed in room:', roomName); // Añadido para debug
+    roomCode.set(roomName, code)
+    socket.to(roomName).emit('code-update', code)
+  })
+
+  socket.on('execute-code', async ({ roomName, code }) => {
+    console.log('Executing code in room:', roomName); // Añadido para debug
+    try {
+      const tempDir = path.join(__dirname, 'temp');
+      if (!fs.existsSync(tempDir)) {
+        fs.mkdirSync(tempDir);
+      }
+      const fileName = `${roomName}_${Date.now()}.py`;
+      const filePath = path.join(tempDir, fileName);
+
+      fs.writeFileSync(filePath, code);
+      console.log('Code written to file:', filePath); // Añadido para debug
+
+      const options = {
+        mode: 'text',
+        pythonPath: 'python',
+        pythonOptions: ['-u'],
+        scriptPath: tempDir,
+        args: [],
+        timeout: 5000
+      };
+
+      PythonShell.run(fileName, options)
+        .then(messages => {
+          console.log('Code execution successful:', messages); // Añadido para debug
+          fs.unlinkSync(filePath);
+          socket.emit('execution-result', {
+            output: messages.join('\n'),
+            error: null
+          });
+        })
+        .catch(err => {
+          console.error('Code execution error:', err); // Añadido para debug
+          if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+          }
+          socket.emit('execution-result', {
+            output: null,
+            error: err.message
+          });
+        });
+
+    } catch (error) {
+      console.error('General error:', error); // Añadido para debug
+      socket.emit('execution-result', {
+        output: null,
+        error: error.message
+      });
+    }
+  });
+
+  socket.on('sync-request', (roomName) => {
+    console.log('Sync requested for room:', roomName); // Añadido para debug
+    const currentCode = roomCode.get(roomName) || ''
+    socket.emit('code-update', currentCode)
+  })
+
+  socket.on('disconnect', () => {
+    console.log('Code editor client disconnected:', socket.id)
+  })
+})

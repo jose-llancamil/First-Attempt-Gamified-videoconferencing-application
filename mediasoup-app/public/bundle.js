@@ -21268,10 +21268,10 @@ const getLocalStream = () => {
       }
     }
   })
-  .then(streamSuccess)
-  .catch(error => {
-    console.log(error.message)
-  })
+    .then(streamSuccess)
+    .catch(error => {
+      console.log(error.message)
+    })
 }
 
 /* Prepara el dispositivo con las capacidades necesarias para transmitir medios,
@@ -21356,7 +21356,7 @@ const connectSendTransport = async () => {
   audioProducer.on('transportclose', () => {
     console.log('audio transport ended')
   })
-  
+
   videoProducer.on('trackended', () => {
     console.log('video track ended')
   })
@@ -21469,68 +21469,72 @@ const codeSocket = io("/code-editor")
 
 // configuración del editor
 document.addEventListener('DOMContentLoaded', () => {
-    let editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
-        mode: 'python',
-        theme: 'monokai',
-        lineNumbers: true,
-        autoCloseBrackets: true,
-        matchBrackets: true,
-        indentUnit: 4,
-        tabSize: 4,
-        indentWithTabs: false,
-        lineWrapping: true
+  let editor = CodeMirror.fromTextArea(document.getElementById('code-editor'), {
+    mode: 'python',
+    theme: 'monokai',
+    lineNumbers: true,
+    autoCloseBrackets: true,
+    matchBrackets: true,
+    indentUnit: 4,
+    tabSize: 4,
+    indentWithTabs: false,
+    lineWrapping: true
+  });
+
+  // Configurar tamaño inicial
+  editor.setSize(null, '100%');
+
+  // Conectar con la sala del editor
+  codeSocket.emit('join-editor-room', roomName);
+
+  // Manejar cambios en el editor
+  let timeout = null;
+  editor.on('change', (cm, change) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      codeSocket.emit('code-change', {
+        roomName,
+        code: cm.getValue()
+      });
+    }, 500);
+  });
+
+  // Manejar actualizaciones de código
+  codeSocket.on('code-update', (code) => {
+    if (editor && code !== editor.getValue()) {
+      const cursor = editor.getCursor();
+      editor.setValue(code);
+      editor.setCursor(cursor);
+    }
+  });
+
+  // Manejar resultados de ejecución
+  codeSocket.on('execution-result', (result) => {
+    const outputDiv = document.getElementById('code-output');
+    if (result.error) {
+      outputDiv.innerHTML = `Error: ${result.error}`;
+      outputDiv.className = 'error-output';
+    } else {
+      const formattedOutput = result.output
+        .split('\n')
+        .map(line => line.replace(/\s+$/, ''))
+        .join('\n');
+      outputDiv.innerHTML = `<pre>${formattedOutput}</pre>`;
+      outputDiv.className = 'success-output';
+    }
+  });
+
+  // Configurar botones
+  document.getElementById('run-code').addEventListener('click', () => {
+    const code = editor.getValue();
+    const outputDiv = document.getElementById('code-output');
+    outputDiv.innerHTML = 'Ejecutando código...';
+    outputDiv.className = '';
+
+    codeSocket.emit('execute-code', {
+      roomName,
+      code
     });
-
-    // Configurar tamaño inicial
-    editor.setSize(null, '100%');
-
-    // Conectar con la sala del editor
-    codeSocket.emit('join-editor-room', roomName);
-
-    // Manejar cambios en el editor
-    let timeout = null;
-    editor.on('change', (cm, change) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-            codeSocket.emit('code-change', {
-                roomName,
-                code: cm.getValue()
-            });
-        }, 500);
-    });
-
-    // Manejar actualizaciones de código
-    codeSocket.on('code-update', (code) => {
-        if (editor && code !== editor.getValue()) {
-            const cursor = editor.getCursor();
-            editor.setValue(code);
-            editor.setCursor(cursor);
-        }
-    });
-
-    // Manejar resultados de ejecución
-    codeSocket.on('execution-result', (result) => {
-        const outputDiv = document.getElementById('code-output');
-        if (result.error) {
-            outputDiv.innerHTML = `Error: ${result.error}`;
-            outputDiv.className = 'error-output';
-        } else {
-            outputDiv.innerHTML = result.output || 'Ejecución completada';
-            outputDiv.className = 'success-output';
-        }
-    });
-
-    // Configurar botones
-    document.getElementById('run-code').addEventListener('click', () => {
-        const code = editor.getValue();
-        const outputDiv = document.getElementById('code-output');
-        outputDiv.innerHTML = 'Ejecutando código...';
-        outputDiv.className = '';
-
-        codeSocket.emit('execute-code', {
-            roomName,
-            code
-        });
-    });
+  });
 });
 },{"mediasoup-client":66,"socket.io-client":81}]},{},[96]);

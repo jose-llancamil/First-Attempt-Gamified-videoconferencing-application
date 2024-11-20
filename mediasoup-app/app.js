@@ -393,20 +393,20 @@ codeEditor.on('connection', (socket) => {
   console.log('Code editor client connected:', socket.id)
 
   socket.on('join-editor-room', (roomName) => {
-    console.log('Client joining editor room:', roomName); // Añadido para debug
+    console.log('Client joining editor room:', roomName);
     socket.join(roomName)
     const currentCode = roomCode.get(roomName) || ''
     socket.emit('code-update', currentCode)
   })
 
   socket.on('code-change', ({ roomName, code }) => {
-    console.log('Code changed in room:', roomName); // Añadido para debug
+    console.log('Code changed in room:', roomName);
     roomCode.set(roomName, code)
     socket.to(roomName).emit('code-update', code)
   })
 
   socket.on('execute-code', async ({ roomName, code }) => {
-    console.log('Executing code in room:', roomName); // Añadido para debug
+    console.log('Executing code in room:', roomName);
     try {
       const tempDir = path.join(__dirname, 'temp');
       if (!fs.existsSync(tempDir)) {
@@ -416,7 +416,7 @@ codeEditor.on('connection', (socket) => {
       const filePath = path.join(tempDir, fileName);
 
       fs.writeFileSync(filePath, code);
-      console.log('Code written to file:', filePath); // Añadido para debug
+      console.log('Code written to file:', filePath);
 
       const options = {
         mode: 'text',
@@ -429,7 +429,7 @@ codeEditor.on('connection', (socket) => {
 
       PythonShell.run(fileName, options)
         .then(messages => {
-          console.log('Code execution successful:', messages); // Añadido para debug
+          console.log('Code execution successful:', messages);
           fs.unlinkSync(filePath);
           socket.emit('execution-result', {
             output: messages.join('\n'),
@@ -437,7 +437,7 @@ codeEditor.on('connection', (socket) => {
           });
         })
         .catch(err => {
-          console.error('Code execution error:', err); // Añadido para debug
+          console.error('Code execution error:', err);
           if (fs.existsSync(filePath)) {
             fs.unlinkSync(filePath);
           }
@@ -448,7 +448,7 @@ codeEditor.on('connection', (socket) => {
         });
 
     } catch (error) {
-      console.error('General error:', error); // Añadido para debug
+      console.error('General error:', error);
       socket.emit('execution-result', {
         output: null,
         error: error.message
@@ -457,7 +457,7 @@ codeEditor.on('connection', (socket) => {
   });
 
   socket.on('sync-request', (roomName) => {
-    console.log('Sync requested for room:', roomName); // Añadido para debug
+    console.log('Sync requested for room:', roomName);
     const currentCode = roomCode.get(roomName) || ''
     socket.emit('code-update', currentCode)
   })

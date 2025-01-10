@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Ejercicios</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-5xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Gestión de Ejercicios</h1>
+            <button onclick="openAddProblemModal()"
+                class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                <i class="fas fa-plus"></i> Agregar Problema
+            </button>
+        </div>
+
+        <div class="mb-4">
+            <button onclick="goBack()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+        </div>
+
+        <!-- Tabla de Problemas -->
+        <div class="overflow-x-auto">
+            <table class="table-auto w-full border-collapse border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border border-gray-300 px-4 py-2">Título</th>
+                        <th class="border border-gray-300 px-4 py-2">Dificultad</th>
+                        <th class="border border-gray-300 px-4 py-2">Experiencia</th>
+                        <th class="border border-gray-300 px-4 py-2">Monedas</th>
+                        <th class="border border-gray-300 px-4 py-2">Entradas</th>
+                        <th class="border border-gray-300 px-4 py-2">Salidas Esperadas</th>
+                        <th class="border border-gray-300 px-4 py-2">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="problemsBody">
+                    <!-- Problemas dinámicos serán inyectados aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="addProblemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Agregar Nuevo Problema</h2>
+                <button onclick="closeAddProblemModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addProblemForm" onsubmit="submitNewProblem(event)">
+                <!-- Título -->
+                <div class="mb-4">
+                    <label for="titulo" class="block text-sm font-medium text-gray-700">Título</label>
+                    <input type="text" id="titulo" name="titulo" class="border border-gray-300 rounded w-full p-2"
+                        required>
+                </div>
+
+                <!-- Descripción -->
+                <div class="mb-4">
+                    <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" class="border border-gray-300 rounded w-full p-2"
+                        rows="3" required></textarea>
+                </div>
+
+                <!-- Dificultad -->
+                <div class="mb-4">
+                    <label for="dificultad" class="block text-sm font-medium text-gray-700">Dificultad</label>
+                    <select id="dificultad" name="dificultad" class="border border-gray-300 rounded w-full p-2"
+                        required>
+                        <option value="Fácil">Fácil</option>
+                        <option value="Intermedio">Intermedio</option>
+                        <option value="Difícil">Difícil</option>
+                    </select>
+                </div>
+
+                <!-- Experiencia -->
+                <div class="mb-4">
+                    <label for="experiencia" class="block text-sm font-medium text-gray-700">Experiencia</label>
+                    <input type="number" id="experiencia" name="experiencia"
+                        class="border border-gray-300 rounded w-full p-2" required>
+                </div>
+
+                <!-- Monedas -->
+                <div class="mb-4">
+                    <label for="monedas" class="block text-sm font-medium text-gray-700">Monedas</label>
+                    <input type="number" id="monedas" name="monedas" class="border border-gray-300 rounded w-full p-2"
+                        required>
+                </div>
+
+                <!-- Entradas -->
+                <div class="mb-4">
+                    <label for="entradas" class="block text-sm font-medium text-gray-700">Entradas (JSON)</label>
+                    <textarea id="entradas" name="entradas" class="border border-gray-300 rounded w-full p-2" rows="3"
+                        required></textarea>
+                    <small class="text-gray-500">Ejemplo: [[1, 2], [3, 4], [5, 6]]</small>
+                </div>
+
+                <!-- Salidas Esperadas -->
+                <div class="mb-4">
+                    <label for="salidas_esperadas" class="block text-sm font-medium text-gray-700">Salidas Esperadas
+                        (JSON)</label>
+                    <textarea id="salidas_esperadas" name="salidas_esperadas"
+                        class="border border-gray-300 rounded w-full p-2" rows="3" required></textarea>
+                    <small class="text-gray-500">Ejemplo: [3, 7, 11]</small>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeAddProblemModal()"
+                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Problema -->
+    <div id="editProblemModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Editar Problema</h2>
+                <button onclick="closeEditProblemModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editProblemForm" onsubmit="submitEditProblem(event)">
+                <!-- Título -->
+                <div class="mb-4">
+                    <label for="editTitulo" class="block text-sm font-medium text-gray-700">Título</label>
+                    <input type="text" id="editTitulo" name="titulo" class="border border-gray-300 rounded w-full p-2"
+                        required>
+                </div>
+
+                <!-- Descripción -->
+                <div class="mb-4">
+                    <label for="editDescripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                    <textarea id="editDescripcion" name="descripcion" class="border border-gray-300 rounded w-full p-2"
+                        rows="3" required></textarea>
+                </div>
+
+                <!-- Dificultad -->
+                <div class="mb-4">
+                    <label for="editDificultad" class="block text-sm font-medium text-gray-700">Dificultad</label>
+                    <select id="editDificultad" name="dificultad" class="border border-gray-300 rounded w-full p-2"
+                        required>
+                        <option value="Fácil">Fácil</option>
+                        <option value="Intermedio">Intermedio</option>
+                        <option value="Difícil">Difícil</option>
+                    </select>
+                </div>
+
+                <!-- Experiencia -->
+                <div class="mb-4">
+                    <label for="editExperiencia" class="block text-sm font-medium text-gray-700">Experiencia</label>
+                    <input type="number" id="editExperiencia" name="experiencia"
+                        class="border border-gray-300 rounded w-full p-2" required>
+                </div>
+
+                <!-- Monedas -->
+                <div class="mb-4">
+                    <label for="editMonedas" class="block text-sm font-medium text-gray-700">Monedas</label>
+                    <input type="number" id="editMonedas" name="monedas"
+                        class="border border-gray-300 rounded w-full p-2" required>
+                </div>
+
+                <!-- Entradas -->
+                <div class="mb-4">
+                    <label for="editEntradas" class="block text-sm font-medium text-gray-700">Entradas (JSON)</label>
+                    <textarea id="editEntradas" name="entradas" class="border border-gray-300 rounded w-full p-2"
+                        rows="3" required></textarea>
+                    <small class="text-gray-500">Ejemplo: [[1, 2], [3, 4], [5, 6]]</small>
+                </div>
+
+                <!-- Salidas Esperadas -->
+                <div class="mb-4">
+                    <label for="editSalidasEsperadas" class="block text-sm font-medium text-gray-700">Salidas Esperadas
+                        (JSON)</label>
+                    <textarea id="editSalidasEsperadas" name="salidas_esperadas"
+                        class="border border-gray-300 rounded w-full p-2" rows="3" required></textarea>
+                    <small class="text-gray-500">Ejemplo: [3, 7, 11]</small>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeEditProblemModal()"
+                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        async function fetchProblems() {
+            try {
+                const response = await fetch('/api/problemas');
+                if (!response.ok) {
+                    throw new Error(`Error del servidor: ${response.status}`);
+                }
+                const problems = await response.json();
+
+                if (!Array.isArray(problems)) {
+                    throw new Error('La respuesta no es un arreglo.');
+                }
+
+                renderProblems(problems);
+            } catch (error) {
+                console.error('Error al obtener problemas:', error);
+                alert('Hubo un problema al cargar los ejercicios. Inténtalo más tarde.');
+            }
+        }
+
+        function renderProblems(problems) {
+            const tbody = document.getElementById('problemsBody');
+            tbody.innerHTML = '';
+            if (problems.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4">No se encontraron problemas.</td></tr>';
+                return;
+            }
+
+            problems.forEach((problem) => {
+                const row = document.createElement('tr');
+                const formattedEntradas = problem.entradas.map(e => `(${e.join(', ')})`).join(', ');
+                const formattedSalidas = problem.salidas_esperadas.map(s => `(${s})`).join(', ');
+
+                row.innerHTML = `
+                                    <td class="border border-gray-300 px-4 py-2">${problem.titulo}</td>
+                                    <td class="border border-gray-300 px-4 py-2">${problem.dificultad}</td>
+                                    <td class="border border-gray-300 px-4 py-2">${problem.experiencia}</td>
+                                    <td class="border border-gray-300 px-4 py-2">${problem.monedas}</td>
+                                    <td class="border border-gray-300 px-4 py-2">${formattedEntradas}</td>
+                                    <td class="border border-gray-300 px-4 py-2">${formattedSalidas}</td>
+                                    <td class="border border-gray-300 px-4 py-2">
+                                        <div class="flex flex-col items-center space-y-2">
+                                            <button onclick="openEditProblemModal(${problem.id})" class="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 w-full">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </button>
+                                            <button onclick="deleteProblem(${problem.id})" class="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 w-full">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    </td>
+                                `;
+                tbody.appendChild(row);
+            });
+        }
+
+
+        function editProblem(problemId) {
+            alert(`Editar problema con ID ${problemId}`);
+        }
+
+        async function deleteProblem(problemId) {
+            if (confirm('¿Estás seguro de que deseas eliminar este problema?')) {
+                try {
+                    const response = await fetch(`/api/problemas/${problemId}`, {
+                        method: 'DELETE',
+                    });
+
+                    if (response.ok) {
+                        alert('Problema eliminado correctamente.');
+                        fetchProblems();
+                    } else {
+                        alert('Error al eliminar el problema.');
+                    }
+                } catch (error) {
+                    console.error('Error al eliminar problema:', error);
+                }
+            }
+        }
+
+        function openAddProblemModal() {
+            alert('Abrir modal para agregar problema.');
+        }
+
+        function goBack() {
+            window.location.href = '/gestion.html';
+        }
+
+        // Inicializar la tabla con los problemas existentes
+        fetchProblems();
+
+        function openAddProblemModal() {
+            document.getElementById('addProblemModal').classList.remove('hidden');
+        }
+
+        function closeAddProblemModal() {
+            document.getElementById('addProblemModal').classList.add('hidden');
+        }
+
+        async function submitNewProblem(event) {
+            event.preventDefault();
+            const form = document.getElementById('addProblemForm');
+            const formData = new FormData(form);
+
+            const problemData = {
+                titulo: formData.get('titulo'),
+                descripcion: formData.get('descripcion'),
+                dificultad: formData.get('dificultad'),
+                experiencia: parseInt(formData.get('experiencia')),
+                monedas: parseInt(formData.get('monedas')),
+                entradas: JSON.parse(formData.get('entradas')),
+                salidas_esperadas: JSON.parse(formData.get('salidas_esperadas')),
+            };
+
+            try {
+                const response = await fetch('/api/problemas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(problemData),
+                });
+
+                if (response.ok) {
+                    alert('Problema agregado correctamente.');
+                    closeAddProblemModal();
+                    fetchProblems(); // Actualizar la tabla
+                } else {
+                    const error = await response.json();
+                    alert(`Error al agregar problema: ${error.error}`);
+                }
+            } catch (error) {
+                console.error('Error al agregar problema:', error);
+                alert('Error al agregar problema.');
+            }
+        }
+        let currentProblemId = null; // ID del problema que se está editando
+
+        async function openEditProblemModal(problemId) {
+            try {
+                // Realizar una solicitud al backend para obtener los datos del problema
+                const response = await fetch(`/api/problemas/${problemId}`);
+                if (!response.ok) {
+                    throw new Error(`Error al obtener los datos del problema: ${response.status}`);
+                }
+
+                const problem = await response.json();
+
+                currentProblemId = problem.id;
+
+                // Precargar los datos del problema en el formulario
+                document.getElementById('editTitulo').value = problem.titulo;
+                document.getElementById('editDescripcion').value = problem.descripcion;
+                document.getElementById('editDificultad').value = problem.dificultad;
+                document.getElementById('editExperiencia').value = problem.experiencia;
+                document.getElementById('editMonedas').value = problem.monedas;
+                document.getElementById('editEntradas').value = JSON.stringify(problem.entradas, null, 2);
+                document.getElementById('editSalidasEsperadas').value = JSON.stringify(problem.salidas_esperadas, null, 2);
+
+                // Mostrar el modal
+                document.getElementById('editProblemModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error al abrir el modal de edición:', error);
+                alert('No se pudo cargar la información del problema.');
+            }
+        }
+
+        function closeEditProblemModal() {
+            document.getElementById('editProblemModal').classList.add('hidden');
+            currentProblemId = null; // Limpiar el ID del problema
+        }
+
+        async function submitEditProblem(event) {
+            event.preventDefault();
+
+            if (!currentProblemId) {
+                alert('No se ha seleccionado ningún problema para editar.');
+                return;
+            }
+
+            const form = document.getElementById('editProblemForm');
+            const formData = new FormData(form);
+
+            const updatedProblem = {
+                titulo: formData.get('titulo'),
+                descripcion: formData.get('descripcion'),
+                dificultad: formData.get('dificultad'),
+                experiencia: parseInt(formData.get('experiencia')),
+                monedas: parseInt(formData.get('monedas')),
+                entradas: JSON.parse(formData.get('entradas')),
+                salidas_esperadas: JSON.parse(formData.get('salidas_esperadas')),
+            };
+
+            try {
+                const response = await fetch(`/api/problemas/${currentProblemId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedProblem),
+                });
+
+                if (response.ok) {
+                    alert('Problema actualizado correctamente.');
+                    closeEditProblemModal();
+                    fetchProblems(); // Actualizar la tabla
+                } else {
+                    const error = await response.json();
+                    alert(`Error al actualizar el problema: ${error.error}`);
+                }
+            } catch (error) {
+                console.error('Error al actualizar el problema:', error);
+                alert('Error al actualizar el problema.');
+            }
+        }
+
+    </script>
+</body>
+
+</html>

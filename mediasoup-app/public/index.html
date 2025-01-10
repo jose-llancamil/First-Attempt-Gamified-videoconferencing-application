@@ -4,74 +4,652 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <!-- CodeMirror CSS -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
-    <!-- Font Awesome for icons - Movido al head para mejor rendimiento -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <title>Videoconferencia con Editor de Código</title>
+    <link href="/static/tailwind-output.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 
-<body>
-    <div id="main-container">
-        <div id="py-code">
-            <div id="editor-container">
-                <textarea id="code-editor"></textarea>
-                <div class="editor-buttons">
-                    <button id="run-code" class="btn primary">
-                        <i class="fas fa-play"></i>
-                        <span>Run</span>
-                    </button>
-                </div>
-                <div id="code-output"></div>
+<body class="bg-gray-100 h-screen flex">
+    <!-- Contenedor principal -->
+    <div id="main-container" class="flex flex-col flex-grow gap-5 p-5">
+        <!-- Enunciados -->
+        <div id="problems-container" data-problem-id="" class="flex items-center" role="region"
+            aria-label="Problemas disponibles">
+            <div id="problem-content" class="problem-details" aria-live="polite">
+                <span class="problem-title">Nombre</span>
+                <span class="problem-description">Descripción</span>
+                <span class="problem-difficulty difficulty-medium">Dificultad</span>
+            </div>
+            <div class="navigation-buttons">
+                <button id="prev-problem"
+                    class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+                    <i class="fas fa-arrow-left"></i>
+                </button>
+                <button id="next-problem"
+                    class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
             </div>
         </div>
-        <div id="general-buttons">
-            <button id="activity-room-button" class="btn">
-                <i class="fas fa-gamepad"></i>
-                <span>Room</span>
+        <!-- Editor de Código -->
+        <div id="editor-container" class="flex flex-col gap-4 p-5 bg-white rounded-lg shadow-md flex-grow">
+            <textarea id="code-editor"
+                class="w-full h-80 border border-gray-300 rounded p-3 text-sm font-mono"></textarea>
+            <div class="editor-buttons flex gap-3">
+                <button id="run-code"
+                    class="btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+                    <i class="fas fa-play"></i> Run
+                </button>
+                <button id="finish-task"
+                    class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+                    <i class="fas fa-paper-plane"></i> Finish
+                </button>
+            </div>
+            <div id="code-output" class="bg-gray-800 text-white p-3 rounded-md font-mono mt-3 overflow-y-auto h-32">
+            </div>
+        </div>
+        <!-- Botones generales -->
+        <div id="general-buttons" class="flex justify-center gap-4 mt-1">
+            <button id="chat-button"
+                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+                <i class="fas fa-comment"></i> Chat
             </button>
-            <button id="chat-button" class="btn">
-                <i class="fas fa-comment"></i>
-                <span>Chat</span>
+            <button id="mute-button"
+                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+                <i class="fas fa-microphone"></i> Mute
             </button>
-            <button id="mute-button" class="btn">
-                <i class="fas fa-microphone"></i>
-                <span>Mute</span>
-            </button>
-            <button id="hide-button" class="btn">
-                <i class="fas fa-video"></i>
-                <span>Hide</span>
+            <button id="hide-button"
+                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+                <i class="fas fa-video"></i> Hide
             </button>
         </div>
     </div>
 
-    <div id="video-section">
-        <div class="video-group">
-            <h3 class="video-section-title">Local video:</h3>
-            <div id="local-video">
-                <div class="video-wrapper">
-                    <video id="localVideo" autoplay muted></video>
-                        <div class="video-status">
-                            <i class="fas fa-microphone-slash audio-status hidden"></i>
-                            <i class="fas fa-video-slash video-status hidden"></i>
+    <!-- Dashboard lateral derecho -->
+    <div id="dashboard" class="w-80 bg-white shadow-lg h-screen flex flex-col">
+        <!-- Cabecera fija -->
+        <div class="flex-shrink-0">
+            <!-- Banner de bienvenida -->
+            <div id="welcome-banner" class="p-4">
+                <div id="welcome-message" class="text-lg font-bold text-gray-800">
+                    BIENVENIDO, USUARIO
+                </div>
+            </div>
+
+            <!-- Barra de navegación -->
+            <div class="flex justify-center px-2 mb-4 space-x-2">
+                <button class="tab-btn active" data-tab="videos">
+                    <i class="fas fa-video"></i>
+                </button>
+                <button class="tab-btn" data-tab="rewards">
+                    <i class="fas fa-gift"></i>
+                </button>
+                <button class="tab-btn" data-tab="achievements">
+                    <i class="fas fa-trophy"></i>
+                </button>
+                <button class="tab-btn" data-tab="ranking">
+                    <i class="fas fa-crown"></i>
+                </button>
+                <button class="tab-btn" data-tab="summary">
+                    <i class="fas fa-user"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Contenidos de las pestañas -->
+        <div class="flex-1 overflow-y-auto">
+            <!-- Videos -->
+            <div id="videos-content" class="tab-content active p-4">
+                <div class="video-group mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Mi Video:</h3>
+                    <div id="local-video" class="video-wrapper">
+                        <video id="localVideo" class="w-full h-48 bg-black rounded-lg object-cover" autoplay
+                            muted></video>
+                    </div>
+                </div>
+                <div class="video-group mb-4">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Otros Participantes:</h3>
+                    <div id="remote-videos">
+                        <div id="videoContainer" class="space-y-4">
+                            <!-- Videos remotos -->
                         </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="video-group">
-            <h3 class="video-section-title">Remote videos:</h3>
-            <div id="remote-videos">
-                <div id="videoContainer"></div>
+
+            <!-- Otras pestañas -->
+            <div id="rewards-content" class="tab-content hidden p-4">
+                <h2 class="text-xl font-bold mb-4">Recompensas</h2>
+                <div id="rewards-list" class="space-y-2">
+                    <p class="text-gray-500 text-sm">Cargando recompensas...</p>
+                </div>
+            </div>
+
+            <div id="achievements-content" class="tab-content hidden p-4">
+                <h2 class="text-xl font-bold mb-4">Logros Disponibles</h2>
+                <div id="achievements-list" class="space-y-2">
+                    <p class="text-gray-500 text-sm">Cargando logros...</p>
+                </div>
+            </div>
+
+            <div id="ranking-content" class="tab-content hidden p-4">
+                <h2 class="text-xl font-bold mb-4">Ranking</h2>
+                <div id="ranking-list" class="space-y-2">
+                    <p class="text-gray-500 text-sm">Cargando ranking...</p>
+                </div>
+            </div>
+
+            <div id="summary-content" class="tab-content">
+                <h2 class="text-xl font-bold mb-4">Resumen Personal</h2>
+                <div id="user-summary" class="bg-white p-4 rounded-lg shadow-md mb-6">
+                    <p class="text-gray-500 text-sm">Cargando resumen...</p>
+                </div>
+                <h2 class="text-xl font-bold mb-4">Logros Desbloqueados:</h2>
+                <div id="user-achievements" class="bg-white p-4 rounded-lg shadow-md mt-6 grid grid-cols-4 gap-4 ">
+                    <!-- Aquí se agregarán los logros dinámicamente -->
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- CodeMirror Scripts before bundle.js -->
+    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/python/python.min.js"></script>
-    <script src="bundle.js"></script>
+    <script src="/static/bundle.js"></script>
+    <script>
+        // Manejo de pestañas
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Cambiar botón activo
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                // Cambiar contenido activo
+                const tabId = btn.getAttribute('data-tab');
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                document.getElementById(`${tabId}-content`).classList.add('active');
+            });
+        });
+
+        // Obtener y mostrar nombre de usuario
+        fetch('/api/session')
+            .then(res => {
+                if (!res.ok) throw new Error('No autorizado');
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById('welcome-message').textContent = `BIENVENIDO, ${data.name.toUpperCase()}`;
+            })
+            .catch(err => {
+                console.error(err);
+                window.location.href = '/';
+            });
+    </script>
+    <script>
+        // Variables globales
+        let problems = [];
+        let currentProblemIndex = 0;
+        let completedExercises = [];
+
+        // Función global para actualizar la vista del problema
+        function updateProblemView() {
+            const problemContent = document.getElementById('problem-content');
+            const problemsContainer = document.getElementById('problems-container');
+            const prevButton = document.getElementById('prev-problem');
+            const nextButton = document.getElementById('next-problem');
+
+            if (problems.length === 0) {
+                problemContent.innerHTML = `<p class="text-gray-500">No hay problemas disponibles.</p>`;
+                return;
+            }
+
+            const problem = problems[currentProblemIndex];
+            const difficultyClass =
+                problem.dificultad === 'Fácil' ? 'difficulty-easy' :
+                    problem.dificultad === 'Intermedio' ? 'difficulty-medium' : 'difficulty-hard';
+
+            problemContent.innerHTML = `
+        <div class="flex items-center gap-2">
+            <span class="problem-title">${problem.titulo}</span>
+        </div>
+        <span class="problem-description">${problem.descripcion}</span>
+        <span class="problem-difficulty ${difficultyClass}">${problem.dificultad}</span>
+    `;
+
+            problemsContainer.setAttribute('data-problem-id', problem.id);
+
+            prevButton.disabled = currentProblemIndex === 0;
+            nextButton.disabled = currentProblemIndex === problems.length - 1;
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const problemsContainer = document.getElementById('problems-container');
+            const prevButton = document.getElementById('prev-problem');
+            const nextButton = document.getElementById('next-problem');
+
+            const loadProblems = async () => {
+                try {
+                    const response = await fetch('/api/problemas/disponibles');
+                    if (!response.ok) throw new Error('Error al obtener problemas.');
+                    problems = await response.json();
+                    if (problems.length === 0) {
+                        document.getElementById('problem-content').innerHTML = `<p class="text-gray-500">No hay problemas disponibles.</p>`;
+                    } else {
+                        updateProblemView();
+                    }
+                } catch (error) {
+                    console.error('Error cargando problemas:', error);
+                    document.getElementById('problem-content').innerHTML = `<p class="text-red-500">Error cargando problemas.</p>`;
+                }
+            };
+
+            const showAlert = (message) => {
+                alert(message);
+            };
+
+            prevButton.addEventListener('click', () => {
+                if (currentProblemIndex > 0) {
+                    currentProblemIndex--;
+                    updateProblemView();
+                }
+            });
+
+            nextButton.addEventListener('click', () => {
+                if (currentProblemIndex < problems.length - 1) {
+                    currentProblemIndex++;
+                    updateProblemView();
+                }
+            });
+
+            loadProblems();
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const rewardsList = document.getElementById('rewards-list');
+
+            const loadRewards = async () => {
+                try {
+                    const response = await fetch('/api/recompensas');
+                    if (!response.ok) throw new Error('Error al obtener recompensas.');
+                    const recompensas = await response.json();
+
+                    if (recompensas.length === 0) {
+                        rewardsList.innerHTML = `<p class="text-gray-500">No hay recompensas disponibles.</p>`;
+                        return;
+                    }
+
+                    rewardsList.innerHTML = recompensas.map(recompensa => `
+                <div class="reward-card p-2 border rounded-lg bg-white shadow-md flex justify-between items-center">
+                    <!-- Contenedor para nombre, precio y descripción -->
+                    <div class="flex-grow">
+                        <h4 class="text-sm font-bold text-gray-800 mb-1">${recompensa.nombre}</h4>
+                        <span class="text-sm font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded inline-flex items-center gap-1 mb-1">
+                            <img src="/static/images/coins.png" alt="Monedas" class="w-4 h-4 object-contain">
+                            $${recompensa.costo_monedas}
+                        </span>
+                        <p class="text-xs text-gray-600">${recompensa.descripcion}</p>
+                    </div>
+                    
+                    <!-- Botón de canje -->
+                    <div class="flex-shrink-0 ml-4">
+                        <button 
+                            class="redeem-btn flex items-center justify-center w-10 h-10 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors duration-200"
+                            data-reward-id="${recompensa.id}"
+                            title="Canjear recompensa">
+                            <i class="fas fa-plus-square text-4xl"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+                    document.querySelectorAll('.redeem-btn').forEach(button => {
+                        button.addEventListener('click', async (e) => {
+                            const rewardId = e.currentTarget.dataset.rewardId;
+                            try {
+                                const response = await fetch('/api/recompensas/canjear', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify({ rewardId }),
+                                });
+
+                                const result = await response.json();
+                                if (response.ok) {
+                                    alert(`Recompensa canjeada: ${result.mensaje}`);
+                                    await window.loadUserAchievements();
+                                } else {
+                                    alert(`Error: ${result.error}`);
+                                }
+                            } catch (error) {
+                                console.error('Error canjeando recompensa:', error);
+                                alert('Error canjeando recompensa.');
+                            }
+                        });
+                    });
+
+                } catch (error) {
+                    console.error('Error cargando recompensas:', error);
+                    rewardsList.innerHTML = `<p class="text-red-500">Error cargando recompensas.</p>`;
+                }
+            };
+
+            loadRewards();
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const achievementsList = document.getElementById('achievements-list');
+
+            const loadAchievements = async () => {
+                try {
+                    const response = await fetch('/api/logros');
+                    if (!response.ok) throw new Error('Error al obtener logros.');
+                    const logros = await response.json();
+
+                    if (logros.length === 0) {
+                        achievementsList.innerHTML = `<p class="text-gray-500 text-sm">No hay logros disponibles en este momento.</p>`;
+                        return;
+                    }
+
+                    achievementsList.innerHTML = logros.map(logro => `
+                    <div class="achievement-card flex justify-between items-center p-2 border rounded-lg bg-white shadow-md">
+                        <div class="flex-grow">
+                            <h4 class="text-sm font-bold text-gray-800">${logro.nombre}</h4>
+                            <p class="text-xs text-gray-600">${logro.descripcion}</p>
+                        </div>
+                        <img src="${logro.imagen_url}" alt="${logro.nombre}" class="w-12 h-12 object-contain ml-4">
+                    </div>
+                `).join('');
+                } catch (error) {
+                    console.error('Error cargando logros:', error);
+                    achievementsList.innerHTML = `<p class="text-red-500 text-sm">Error cargando logros.</p>`;
+                }
+            };
+
+            loadAchievements();
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const rankingList = document.getElementById('ranking-list');
+
+            const loadRanking = async () => {
+                try {
+                    const response = await fetch('/api/ranking');
+                    if (!response.ok) throw new Error('Error al obtener el ranking.');
+                    const ranking = await response.json();
+
+                    if (ranking.length === 0) {
+                        rankingList.innerHTML = `<p class="text-gray-500 text-sm">No hay datos de ranking disponibles.</p>`;
+                        return;
+                    }
+
+                    rankingList.innerHTML = ranking.map((user, index) => {
+                        const isFirstPlace = user.rank === 1;
+
+                        return `
+                                <div class="ranking-card flex items-center justify-between p-2 border rounded-lg bg-white shadow-md">
+                                    <div class="flex items-center">
+                                        <span class="text-sm font-bold text-gray-800 w-10 text-center">#${user.rank}</span>
+                                        <div class="flex-grow ml-2">
+                                            <h4 class="text-sm font-bold text-gray-800">${user.name}</h4>
+                                            <p class="text-xs text-gray-600">Nivel: ${user.level}</p>
+                                        </div>
+                                    </div>
+                                    ${isFirstPlace ? '<img src="/static/images/crown.png" alt="Primera posición" class="w-8 h-9 mr-2">' : ''}
+                                </div>
+                            `;
+                    }).join('');
+
+                } catch (error) {
+                    console.error('Error cargando ranking:', error);
+                    rankingList.innerHTML = `<p class="text-red-500 text-sm">Error cargando ranking.</p>`;
+                }
+            };
+
+            loadRanking();
+
+            const socket = io();
+            socket.on('ranking-updated', (updatedRanking) => {
+                console.log('Ranking actualizado:', updatedRanking);
+                loadRanking();
+            });
+        });
+    </script>
+    <script>
+        // Función global para cargar logros
+        window.loadUserAchievements = async () => {
+            try {
+                const response = await fetch('/api/usuario/logros');
+                if (!response.ok) throw new Error('Error al obtener logros del usuario.');
+
+                const achievements = await response.json();
+                const achievementsContainer = document.getElementById('user-achievements');
+                achievementsContainer.innerHTML = '';
+
+                if (achievements.length === 0) {
+                    achievementsContainer.innerHTML = '<p class="text-gray-500 text-sm col-span-4 text-center">Aún no tienes insignias.</p>';
+                    return;
+                }
+
+                const loadImage = (achievement) => {
+                    return new Promise((resolve) => {
+                        const img = new Image();
+                        img.onload = () => {
+                            const achievementBadge = document.createElement('div');
+                            achievementBadge.className = "achievement-badge flex justify-center items-center";
+                            achievementBadge.innerHTML = `
+                            <img src="${achievement.imagen_url}" 
+                                 alt="${achievement.nombre}" 
+                                 class="w-16 h-16 object-contain" 
+                                 title="${achievement.nombre}">
+                        `;
+                            achievementsContainer.appendChild(achievementBadge);
+                            resolve();
+                        };
+                        img.onerror = () => {
+                            console.error(`Error cargando imagen para logro: ${achievement.nombre}`);
+                            resolve();
+                        };
+                        img.src = achievement.imagen_url;
+                    });
+                };
+
+                await Promise.all(achievements.map(loadImage));
+            } catch (error) {
+                console.error('Error al cargar logros del usuario:', error);
+                achievementsContainer.innerHTML = '<p class="text-red-500 text-sm col-span-4 text-center">Error al cargar los logros.</p>';
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const userSummary = document.getElementById('user-summary');
+
+            const loadUserProfile = async () => {
+                try {
+                    const response = await fetch('/api/usuario/perfil');
+                    if (!response.ok) throw new Error('Error al obtener el resumen personal.');
+                    const user = await response.json();
+
+                    userSummary.innerHTML = `
+                    <div>
+                        <h3 class="text-lg font-bold text-gray-800">Nombre: ${user.name}</h3>
+                        <p class="text-sm text-gray-600">Nivel: ${user.level}</p>
+                        <p class="text-sm text-gray-600">Experiencia: ${user.experience}</p>
+                        <p class="text-sm text-gray-600">Monedas: ${user.coins}</p>
+                        <p class="text-sm text-gray-600">Título actual: ${user.titulo_actual}</p>
+                    </div>`;
+                } catch (error) {
+                    console.error('Error cargando resumen personal:', error);
+                    userSummary.innerHTML = `<p class="text-red-500 text-sm">Error cargando resumen personal.</p>`;
+                }
+            };
+
+            loadUserProfile();
+            window.loadUserAchievements();
+        });
+    </script>
+    <script>
+        document.getElementById('finish-task').addEventListener('click', async () => {
+            const problemsContainer = document.getElementById('problems-container');
+            const problemId = problemsContainer.getAttribute('data-problem-id');
+            const editorValue = editor.getValue();
+
+            if (!problemId) {
+                alert('No hay ningún problema seleccionado.');
+                return;
+            }
+
+            const resultContainer = document.getElementById('evaluation-result');
+            resultContainer.innerHTML = 'Evaluando solución...';
+            resultContainer.classList.remove('hidden');
+
+            try {
+                const response = await fetch(`/api/respuestas/evaluar`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        problema_id: problemId,
+                        respuesta: editorValue,
+                    }),
+                });
+
+                if (!response.ok) throw new Error('Error al evaluar la solución.');
+
+                const { estado, experienciaOtorgada, monedasOtorgadas, mensaje } = await response.json();
+
+                resultContainer.innerHTML = `
+                <p><strong>Estado:</strong> ${estado}</p>
+                <p><strong>Experiencia ganada:</strong> ${experienciaOtorgada}</p>
+                <p><strong>Monedas ganadas:</strong> ${monedasOtorgadas}</p>
+                <p>${mensaje}</p>
+            `;
+                resultContainer.classList.add('bg-green-50', 'text-green-800');
+            } catch (error) {
+                console.error('Error evaluando la solución:', error);
+                resultContainer.innerHTML = `<p class="text-red-500">Error evaluando la solución.</p>`;
+                resultContainer.classList.add('bg-red-50', 'text-red-800');
+            }
+        });
+    </script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const socket = io();
+
+            let userId = null;
+
+            fetch('/api/session')
+                .then((response) => response.json())
+                .then((data) => {
+                    userId = data.id;
+
+                    let pendingLevelUpAlert = null;
+                    socket.on(`user-level-up-${userId}`, ({ newLevel }) => {
+                        pendingLevelUpAlert = `¡Felicidades! Has alcanzado el nivel ${newLevel}.`;
+                    });
+
+                    socket.on(`achievement-unlocked-${userId}`, async (achievement) => {
+                        console.log('Nuevo logro desbloqueado - Datos completos:', JSON.stringify(achievement, null, 2));
+                        console.log('Propiedades disponibles:', Object.keys(achievement));
+                        console.log('Nombre:', achievement.name);
+                        console.log('Descripción:', achievement.description);
+
+                        // Verificar si los datos son undefined antes de mostrar el alert
+                        const nombreLogro = achievement.name || 'Nombre no disponible';
+                        const descripcionLogro = achievement.description || 'Descripción no disponible';
+
+                        alert(`¡Logro desbloqueado!\nNombre: ${nombreLogro}\nDescripción: ${descripcionLogro}`);
+
+                        await window.loadUserAchievements();
+                    });
+
+                    socket.on(`user-updated-${userId}`, (data) => {
+                        console.log('Problemas resueltos actualizados:', data.completed_exercises);
+                        completedExercises = data.completed_exercises; // Actualiza la variable global
+                        updateProblemView(); // Llama para reflejar los cambios
+                    });
+
+                    socket.on(`user-stats-updated-${userId}`, async (updatedUser) => {
+                        console.log('Actualización de estadísticas del usuario:', updatedUser);
+
+                        // Recargar el perfil completo del usuario
+                        try {
+                            const response = await fetch('/api/usuario/perfil');
+                            if (!response.ok) throw new Error('Error al obtener el perfil del usuario');
+                            const user = await response.json();
+
+                            const userSummary = document.getElementById('user-summary');
+                            userSummary.innerHTML = `
+                                <div>
+                                    <h3 class="text-lg font-bold text-gray-800">Nombre: ${user.name}</h3>
+                                    <p class="text-sm text-gray-600">Nivel: ${user.level}</p>
+                                    <p class="text-sm text-gray-600">Experiencia: ${user.experience}</p>
+                                    <p class="text-sm text-gray-600">Monedas: ${user.coins}</p>
+                                    <p class="text-sm text-gray-600">Título actual: ${user.titulo_actual || 'Principiante'}</p>
+                                </div>`;
+                        } catch (error) {
+                            console.error('Error actualizando perfil:', error);
+                        }
+                    });
+                    // Manejo del botón para cerrar el popup
+                    const closePopupButton = document.getElementById('close-popup');
+                    closePopupButton.addEventListener('click', () => {
+                        const evaluationPopup = document.getElementById('evaluation-popup');
+                        evaluationPopup.classList.add('hidden');
+
+                        // Mostrar la alerta de subida de nivel si está pendiente
+                        if (pendingLevelUpAlert) {
+                            alert(pendingLevelUpAlert);
+                            pendingLevelUpAlert = null; // Limpiar la alerta pendiente
+                        }
+                    });
+                })
+                .catch((err) => {
+                    console.error('Error al obtener el usuario:', err);
+                });
+
+            socket.on('ranking-updated', (updatedRanking) => {
+                console.log('Ranking actualizado:', updatedRanking);
+
+                const rankingList = document.getElementById('ranking-list');
+                rankingList.innerHTML = updatedRanking
+                    .map(
+                        (user) => `
+              <div class="ranking-card flex items-center p-2 border rounded-lg bg-white shadow-md">
+                  <span class="text-sm font-bold text-gray-800 w-10 text-center">#${user.rank}</span>
+                  <div class="flex-grow">
+                      <h4 class="text-sm font-bold text-gray-800">${user.name}</h4>
+                      <p class="text-xs text-gray-600">Nivel: ${user.level}, Experiencia: ${user.experience}</p>
+                  </div>
+              </div>
+            `
+                    )
+                    .join('');
+            });
+        });
+    </script>
+
+    <div id="evaluation-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white w-96 p-6 rounded-lg shadow-lg">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">Resultado de la Evaluación</h3>
+            <div id="evaluation-result" class="text-gray-700">
+            </div>
+            <div class="flex justify-end mt-4">
+                <button id="close-popup"
+                    class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

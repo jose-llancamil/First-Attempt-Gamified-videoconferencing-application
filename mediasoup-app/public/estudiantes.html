@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Estudiantes</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-4xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Estudiantes</h1>
+            <button onclick="goBack()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+        </div>
+
+        <!-- Filtros -->
+        <div class="mb-6">
+            <input type="text" id="filterLevel" placeholder="Filtrar por Nivel"
+                class="border border-gray-300 p-2 rounded w-1/3 mb-2">
+            <input type="text" id="filterTitle" placeholder="Filtrar por Título"
+                class="border border-gray-300 p-2 rounded w-1/3 mb-2">
+            <button onclick="applyFilters()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                <i class="fas fa-filter"></i> Aplicar Filtros
+            </button>
+        </div>
+
+        <!-- Tabla de Estudiantes -->
+        <div class="overflow-x-auto">
+            <table class="table-auto w-full border-collapse border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border border-gray-300 px-4 py-2">Nombre</th>
+                        <th class="border border-gray-300 px-4 py-2">Nivel</th>
+                        <th class="border border-gray-300 px-4 py-2">Experiencia</th>
+                        <th class="border border-gray-300 px-4 py-2">Monedas</th>
+                        <th class="border border-gray-300 px-4 py-2">Título</th>
+                        <th class="border border-gray-300 px-4 py-2">Ejercicios Completados</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsBody">
+                    <!-- Estudiantes dinámicos serán inyectados aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function fetchStudents(filters = {}) {
+            try {
+                let query = new URLSearchParams(filters).toString();
+                let response = await fetch(`/api/estudiantes?${query}`);
+                let students = await response.json();
+                renderStudents(students);
+            } catch (error) {
+                console.error('Error al obtener estudiantes:', error);
+            }
+        }
+
+        function renderStudents(students) {
+            const tbody = document.getElementById('studentsBody');
+            tbody.innerHTML = '';
+            if (students.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center py-4">No se encontraron estudiantes.</td></tr>';
+                return;
+            }
+
+            students.forEach((student) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+          <td class="border border-gray-300 px-4 py-2">${student.name}</td>
+          <td class="border border-gray-300 px-4 py-2">${student.level}</td>
+          <td class="border border-gray-300 px-4 py-2">${student.experience}</td>
+          <td class="border border-gray-300 px-4 py-2">${student.coins}</td>
+          <td class="border border-gray-300 px-4 py-2">${student.titulo_actual}</td>
+            <td class="border border-gray-300 px-4 py-2">${student.completed_exercises_count}</td>
+        `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function applyFilters() {
+            const filterLevel = document.getElementById('filterLevel').value;
+            const filterTitle = document.getElementById('filterTitle').value;
+
+            const filters = {};
+            if (filterLevel) filters.level = filterLevel;
+            if (filterTitle) filters.titulo_actual = filterTitle;
+
+            fetchStudents(filters);
+        }
+
+        function goBack() {
+            window.location.href = '/gestion.html';
+        }
+
+        // Inicializar la tabla con todos los estudiantes
+        fetchStudents();
+    </script>
+</body>
+
+</html>

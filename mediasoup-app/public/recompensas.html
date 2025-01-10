@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Recompensas</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-5xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Gestión de Recompensas</h1>
+            <button onclick="openAddRewardModal()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                <i class="fas fa-plus"></i> Agregar Recompensa
+            </button>
+        </div>
+
+        <div class="mb-4">
+            <button onclick="goBack()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+        </div>
+
+        <!-- Tabla de Recompensas -->
+        <div class="overflow-x-auto">
+            <table class="table-auto w-full border-collapse border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border border-gray-300 px-4 py-2">Nombre</th>
+                        <th class="border border-gray-300 px-4 py-2">Descripción</th>
+                        <th class="border border-gray-300 px-4 py-2">Costo (Monedas)</th>
+                        <th class="border border-gray-300 px-4 py-2">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="rewardsBody">
+                    <!-- Recompensas dinámicas serán inyectadas aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal para Agregar Recompensa -->
+    <div id="addRewardModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Agregar Nueva Recompensa</h2>
+                <button onclick="closeAddRewardModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="addRewardForm" onsubmit="submitNewReward(event)">
+                <div class="mb-4">
+                    <label for="nombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+                    <input type="text" id="nombre" name="nombre" class="border border-gray-300 rounded w-full p-2"
+                        required>
+                </div>
+                <div class="mb-4">
+                    <label for="descripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                    <textarea id="descripcion" name="descripcion" class="border border-gray-300 rounded w-full p-2"
+                        rows="3" required></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="costo_monedas" class="block text-sm font-medium text-gray-700">Costo (Monedas)</label>
+                    <input type="number" id="costo_monedas" name="costo_monedas"
+                        class="border border-gray-300 rounded w-full p-2" required>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeAddRewardModal()"
+                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancelar</button>
+                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
+                        Guardar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal para Editar Recompensa -->
+    <div id="editRewardModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-bold">Editar Recompensa</h2>
+                <button onclick="closeEditRewardModal()" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editRewardForm" onsubmit="submitEditReward(event)">
+                <div class="mb-4">
+                    <label for="editNombre" class="block text-sm font-medium text-gray-700">Nombre</label>
+                    <input type="text" id="editNombre" name="nombre" class="border border-gray-300 rounded w-full p-2"
+                        required>
+                </div>
+                <div class="mb-4">
+                    <label for="editDescripcion" class="block text-sm font-medium text-gray-700">Descripción</label>
+                    <textarea id="editDescripcion" name="descripcion" class="border border-gray-300 rounded w-full p-2"
+                        rows="3" required></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="editCostoMonedas" class="block text-sm font-medium text-gray-700">Costo
+                        (Monedas)</label>
+                    <input type="number" id="editCostoMonedas" name="costo_monedas"
+                        class="border border-gray-300 rounded w-full p-2" required>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" onclick="closeEditRewardModal()"
+                        class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">Cancelar</button>
+                    <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Guardar
+                        Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script>
+        async function fetchRewards() {
+            try {
+                const response = await fetch('/api/recompensas');
+                if (!response.ok) throw new Error(`Error del servidor: ${response.status}`);
+                const rewards = await response.json();
+                renderRewards(rewards);
+            } catch (error) {
+                console.error('Error al obtener recompensas:', error);
+                alert('Hubo un problema al cargar las recompensas. Inténtalo más tarde.');
+            }
+        }
+
+        function renderRewards(rewards) {
+            const tbody = document.getElementById('rewardsBody');
+            tbody.innerHTML = '';
+            if (rewards.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4">No se encontraron recompensas.</td></tr>';
+                return;
+            }
+
+            rewards.forEach(reward => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                                    <td class="border border-gray-300 px-4 py-2">${reward.nombre}</td>
+                                    <td class="border border-gray-300 px-4 py-2">${reward.descripcion}</td>
+                                    <td class="border border-gray-300 px-4 py-2">${reward.costo_monedas}</td>
+                                    <td class="border border-gray-300 px-4 py-2">
+                                        <div class="flex flex-col items-center space-y-2">
+                                            <button onclick="openEditRewardModal(${reward.id})"
+                                                class="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 w-full">
+                                                <i class="fas fa-edit"></i> Editar
+                                            </button>
+                                            <button onclick="deleteReward(${reward.id})"
+                                                class="bg-red-500 text-white px-4 py-1 rounded hover:bg-red-600 w-full">
+                                                <i class="fas fa-trash"></i> Eliminar
+                                            </button>
+                                        </div>
+                                    </td>
+                                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function goBack() {
+            window.location.href = '/gestion.html';
+        }
+
+        function openAddRewardModal() {
+            document.getElementById('addRewardModal').classList.remove('hidden');
+        }
+
+        function closeAddRewardModal() {
+            document.getElementById('addRewardModal').classList.add('hidden');
+        }
+
+        async function submitNewReward(event) {
+            event.preventDefault();
+            const form = document.getElementById('addRewardForm');
+            const formData = new FormData(form);
+
+            const rewardData = {
+                nombre: formData.get('nombre'),
+                descripcion: formData.get('descripcion'),
+                costo_monedas: parseInt(formData.get('costo_monedas')),
+            };
+
+            try {
+                const response = await fetch('/api/recompensas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(rewardData),
+                });
+
+                if (response.ok) {
+                    alert('Recompensa agregada correctamente.');
+                    closeAddRewardModal();
+                    fetchRewards();
+                } else {
+                    const error = await response.json();
+                    alert(`Error al agregar recompensa: ${error.error}`);
+                }
+            } catch (error) {
+                console.error('Error al agregar recompensa:', error);
+                alert('Error al agregar recompensa.');
+            }
+        }
+
+        async function deleteReward(rewardId) {
+            if (confirm('¿Estás seguro de que deseas eliminar esta recompensa?')) {
+                try {
+                    const response = await fetch(`/api/recompensas/${rewardId}`, { method: 'DELETE' });
+                    if (response.ok) {
+                        alert('Recompensa eliminada correctamente.');
+                        fetchRewards();
+                    } else {
+                        alert('Error al eliminar la recompensa.');
+                    }
+                } catch (error) {
+                    console.error('Error al eliminar recompensa:', error);
+                }
+            }
+        }
+
+        // Inicializar la tabla con las recompensas existentes
+        fetchRewards();
+
+        let currentRewardId = null; // ID de la recompensa que se está editando
+
+        async function openEditRewardModal(rewardId) {
+            try {
+                // Solicitar los datos de la recompensa al backend
+                const response = await fetch(`/api/recompensas/${rewardId}`);
+                if (!response.ok) {
+                    throw new Error(`Error al obtener la recompensa: ${response.status}`);
+                }
+
+                const reward = await response.json();
+
+                // Guardar el ID actual de la recompensa
+                currentRewardId = reward.id;
+
+                // Precargar los datos de la recompensa en el formulario
+                document.getElementById('editNombre').value = reward.nombre;
+                document.getElementById('editDescripcion').value = reward.descripcion;
+                document.getElementById('editCostoMonedas').value = reward.costo_monedas;
+
+                // Mostrar el modal
+                document.getElementById('editRewardModal').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error al abrir el modal de edición:', error);
+                alert('No se pudo cargar la información de la recompensa.');
+            }
+        }
+
+        function closeEditRewardModal() {
+            document.getElementById('editRewardModal').classList.add('hidden');
+            currentRewardId = null; // Limpiar el ID actual
+        }
+
+        async function submitEditReward(event) {
+            event.preventDefault();
+
+            if (!currentRewardId) {
+                alert('No se ha seleccionado ninguna recompensa para editar.');
+                return;
+            }
+
+            const form = document.getElementById('editRewardForm');
+            const formData = new FormData(form);
+
+            const updatedReward = {
+                nombre: formData.get('nombre'),
+                descripcion: formData.get('descripcion'),
+                costo_monedas: parseInt(formData.get('costo_monedas')),
+            };
+
+            try {
+                const response = await fetch(`/api/recompensas/${currentRewardId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatedReward),
+                });
+
+                if (response.ok) {
+                    alert('Recompensa actualizada correctamente.');
+                    closeEditRewardModal();
+                    fetchRewards(); // Actualizar la tabla
+                } else {
+                    const error = await response.json();
+                    alert(`Error al actualizar la recompensa: ${error.error}`);
+                }
+            } catch (error) {
+                console.error('Error al actualizar la recompensa:', error);
+                alert('Error al actualizar la recompensa.');
+            }
+        }
+    </script>
+</body>
+
+</html>

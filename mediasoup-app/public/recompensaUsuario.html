@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recompensas Canjeadas</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
+    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-5xl">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-2xl font-bold">Recompensas Canjeadas</h1>
+            <button onclick="goBack()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                <i class="fas fa-arrow-left"></i> Volver
+            </button>
+        </div>
+
+        <!-- Tabla de Recompensas -->
+        <div class="overflow-x-auto">
+            <table class="table-auto w-full border-collapse border border-gray-300">
+                <thead>
+                    <tr class="bg-gray-200">
+                        <th class="border border-gray-300 px-4 py-2">Usuario</th>
+                        <th class="border border-gray-300 px-4 py-2">Recompensa</th>
+                        <th class="border border-gray-300 px-4 py-2">Fecha Canje</th>
+                    </tr>
+                </thead>
+                <tbody id="redemptionsBody">
+                    <!-- Datos dinámicos serán inyectados aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function fetchRedemptions() {
+            try {
+                const response = await fetch('/api/recompensas-canjeadas');
+                if (!response.ok) {
+                    throw new Error(`Error del servidor: ${response.status}`);
+                }
+                const redemptions = await response.json();
+
+                if (!Array.isArray(redemptions)) {
+                    throw new Error('La respuesta no es un arreglo.');
+                }
+
+                renderRedemptions(redemptions);
+            } catch (error) {
+                console.error('Error al obtener recompensas canjeadas:', error);
+                alert('Hubo un problema al cargar las recompensas canjeadas. Inténtalo más tarde.');
+            }
+        }
+
+        function renderRedemptions(redemptions) {
+            const tbody = document.getElementById('redemptionsBody');
+            tbody.innerHTML = '';
+            if (redemptions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4">No se encontraron recompensas canjeadas.</td></tr>';
+                return;
+            }
+
+            redemptions.forEach((redemption) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td class="border border-gray-300 px-4 py-2">${redemption.usuario_nombre}</td>
+                    <td class="border border-gray-300 px-4 py-2">${redemption.recompensa_nombre}</td>
+                    <td class="border border-gray-300 px-4 py-2">${new Date(redemption.fecha_canje).toLocaleString()}</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function goBack() {
+            window.location.href = '/gestion.html';
+        }
+
+        // Inicializar la tabla con los datos existentes
+        fetchRedemptions();
+    </script>
+</body>
+
+</html>

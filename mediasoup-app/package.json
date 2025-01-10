@@ -5,7 +5,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon app.js",
-    "watch": "watchify public/index.js -o public/bundle.js -v"
+    "watch": "watchify public/index.js -o public/bundle.js -v",
+    "dev": "concurrently \"npm run build:css\" \"npm run start\" \"npm run watch\"",
+    "build:css": "npx tailwindcss -i ./src/styles/tailwind.css -o ./public/tailwind-output.css --watch"
   },
   "author": "José Llancamil",
   "license": "ISC",
@@ -13,15 +15,25 @@
   "type": "module",
   "dependencies": {
     "codemirror": "^5.65.2",
+    "connect-pg-simple": "^10.0.0",
     "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "express-socket.io-session": "^1.3.5",
     "httpolyglot": "^0.1.2",
+    "knex": "^3.1.0",
     "mediasoup": "^3.14.16",
     "mediasoup-client": "^3.7.17",
+    "pg": "^8.13.1",
     "python-shell": "^5.0.0",
     "socket.io": "^4.8.0",
-    "socket.io-client": "^4.8.0"
+    "socket.io-client": "^4.8.0",
+    "sqlite3": "^5.1.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.7"
+    "autoprefixer": "^10.4.20",
+    "concurrently": "^8.0.1",
+    "nodemon": "^3.1.7",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.15"
   }
 }

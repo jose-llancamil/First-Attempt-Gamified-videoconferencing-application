@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Formulario</title>
+  <link href="/static/tailwind-output.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center h-screen">
+  <!-- Formulario principal -->
+  <form id="nameForm" action="/api/join" method="POST" class="bg-white p-6 rounded shadow-md">
+    <label for="name" class="block text-lg font-medium mb-2">Ingresa tu nombre:</label>
+    <input
+      type="text"
+      id="name"
+      name="name"
+      required
+      class="border border-gray-300 p-2 w-full rounded"
+    />
+    <button
+      type="submit"
+      class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+    >
+      Ingresar
+    </button>
+  </form>
+
+  <script>
+    // Lógica de redirección según el nombre ingresado
+    document.getElementById('nameForm').addEventListener('submit', function(event) {
+      const nameInput = document.getElementById('name').value.trim();
+      if (nameInput.toLowerCase() === 'profesor') {
+        event.preventDefault(); // Evita el envío del formulario
+        window.location.href = '/gestion.html'; // Redirige a la página de gestión
+      }
+    });
+  </script>
+</body>
+</html>

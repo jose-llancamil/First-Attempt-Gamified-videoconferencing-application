@@ -21116,28 +21116,42 @@ arguments[4][7][0].apply(exports,arguments)
 })(typeof window === 'object' ? window : this);
 
 },{}],96:[function(require,module,exports){
-// -----------------------------
-// IMPORTS AND INITIALIZATION
-// -----------------------------
-const io = require('socket.io-client');
-const mediasoupClient = require('mediasoup-client');
-const roomName = window.location.pathname.split('/')[2];
+// Bibliotecas y dependencias
+const io = require('socket.io-client')
+const mediasoupClient = require('mediasoup-client')
 
-const socket = io("/mediasoup");
+// Configuraciones iniciales
+const roomName = window.location.pathname.split('/')[2]
+const socket = io("/mediasoup")
 
-// -----------------------------
-// MEDIASOUP VARIABLES
-// -----------------------------
-let device;
-let rtpCapabilities;
-let producerTransport;
-let consumerTransports = [];
-let audioProducer;
-let videoProducer;
+// Conexión exitosa
+socket.on('connection-success', ({ socketId }) => {
+  console.log(socketId)
+  getLocalStream()
+})
+
+// Nuevo productor
+socket.on('new-producer', ({ producerId }) => signalNewConsumerTransport(producerId))
+
+// Productor cerrado
+socket.on('producer-closed', ({ remoteProducerId }) => {
+  const producerToClose = consumerTransports.find(transportData => transportData.producerId === remoteProducerId)
+  producerToClose.consumerTransport.close()
+  producerToClose.consumer.close()
+  consumerTransports = consumerTransports.filter(transportData => transportData.producerId !== remoteProducerId)
+  videoContainer.removeChild(document.getElementById(`td-${remoteProducerId}`))
+})
+
+// Variables Globales
+let device
+let rtpCapabilities
+let producerTransport
+let consumerTransports = []
+let audioProducerz
+let videoProducer
 let isAudioMuted = false;
 let isVideoHidden = false;
 let localStream = null;
-
 let params = {
   encodings: [
     {
@@ -21159,52 +21173,54 @@ let params = {
   codecOptions: {
     videoGoogleStartBitrate: 1000
   }
-};
-
+}
 let audioParams;
 let videoParams = { params };
 let consumingTransports = [];
 
-// -----------------------------
-// SOCKET EVENT HANDLERS
-// -----------------------------
-socket.on('connection-success', ({ socketId }) => {
-  console.log(socketId);
-  getLocalStream();
-});
+// Obtener el stream local
+const getLocalStream = () => {
+  navigator.mediaDevices.getUserMedia({
+    audio: true,
+    video: {
+      width: {
+        min: 640,
+        max: 1920,
+      },
+      height: {
+        min: 400,
+        max: 1080,
+      }
+    }
+  })
+    .then(streamSuccess)
+    .catch(error => {
+      console.log(error.message)
+    })
+}
 
-socket.on('new-producer', ({ producerId }) => signalNewConsumerTransport(producerId));
-
-socket.on('producer-closed', ({ remoteProducerId }) => {
-  const producerToClose = consumerTransports.find(transportData => transportData.producerId === remoteProducerId);
-  producerToClose.consumerTransport.close();
-  producerToClose.consumer.close();
-  consumerTransports = consumerTransports.filter(transportData => transportData.producerId !== remoteProducerId);
-  videoContainer.removeChild(document.getElementById(`td-${remoteProducerId}`));
-});
-
-// -----------------------------
-// MEDIA STREAM FUNCTIONS
-// -----------------------------
+// Manejo de éxito del stream
 const streamSuccess = (stream) => {
   localStream = stream;
-  localVideo.srcObject = stream;
+  localVideo.srcObject = stream
 
   audioParams = { track: stream.getAudioTracks()[0], ...audioParams };
   videoParams = { track: stream.getVideoTracks()[0], ...videoParams };
 
   setupMediaControls();
-  joinRoom();
-};
+  joinRoom()
+}
 
+// Configurar controles de medios
 const setupMediaControls = () => {
   const muteButton = document.getElementById('mute-button');
   const hideButton = document.getElementById('hide-button');
 
   muteButton.addEventListener('click', toggleAudio);
   hideButton.addEventListener('click', toggleVideo);
-};
+}
 
+// Alternar audio
 const toggleAudio = async () => {
   if (!audioProducer) return;
 
@@ -21226,8 +21242,9 @@ const toggleAudio = async () => {
       track.enabled = !isAudioMuted;
     });
   }
-};
+}
 
+// Alternar video
 const toggleVideo = async () => {
   if (!videoProducer) return;
 
@@ -21251,93 +21268,74 @@ const toggleVideo = async () => {
       track.enabled = !isVideoHidden;
     });
   }
-};
+}
 
-const getLocalStream = () => {
-  navigator.mediaDevices.getUserMedia({
-    audio: true,
-    video: {
-      width: {
-        min: 640,
-        max: 1920,
-      },
-      height: {
-        min: 400,
-        max: 1080,
-      }
-    }
-  })
-    .then(streamSuccess)
-    .catch(error => {
-      console.log(error.message);
-    });
-};
-
-// -----------------------------
-// MEDIASOUP ROOM FUNCTIONS
-// -----------------------------
+// Unirse a la sala
 const joinRoom = () => {
   socket.emit('joinRoom', { roomName }, (data) => {
-    console.log(`Router RTP Capabilities... ${data.rtpCapabilities}`);
-    rtpCapabilities = data.rtpCapabilities;
-    createDevice();
-  });
-};
+    console.log(`Router RTP Capabilities... ${data.rtpCapabilities}`)
+    rtpCapabilities = data.rtpCapabilities
+    createDevice()
+  })
+}
 
+// Crear dispositivo
 const createDevice = async () => {
   try {
-    device = new mediasoupClient.Device();
+    device = new mediasoupClient.Device()
     await device.load({
       routerRtpCapabilities: rtpCapabilities
-    });
-    console.log('Device RTP Capabilities', device.rtpCapabilities);
-    createSendTransport();
+    })
+    console.log('Device RTP Capabilities', device.rtpCapabilities)
+    createSendTransport()
   } catch (error) {
-    console.log(error);
+    console.log(error)
     if (error.name === 'UnsupportedError')
-      console.warn('browser not supported');
+      console.warn('browser not supported')
   }
-};
+}
 
+// Crear transporte de envío
 const createSendTransport = () => {
   socket.emit('createWebRtcTransport', { consumer: false }, ({ params }) => {
     if (params.error) {
-      console.log(params.error);
-      return;
+      console.log(params.error)
+      return
     }
-    console.log(params);
-    producerTransport = device.createSendTransport(params);
+    console.log(params)
+    producerTransport = device.createSendTransport(params)
 
     producerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
       try {
         await socket.emit('transport-connect', {
           dtlsParameters,
-        });
-        callback();
+        })
+        callback()
       } catch (error) {
-        errback(error);
+        errback(error)
       }
-    });
+    })
 
     producerTransport.on('produce', async (parameters, callback, errback) => {
-      console.log(parameters);
+      console.log(parameters)
       try {
         await socket.emit('transport-produce', {
           kind: parameters.kind,
           rtpParameters: parameters.rtpParameters,
           appData: parameters.appData,
         }, ({ id, producersExist }) => {
-          callback({ id });
-          if (producersExist) getProducers();
-        });
+          callback({ id })
+          if (producersExist) getProducers()
+        })
       } catch (error) {
-        errback(error);
+        errback(error)
       }
-    });
-    connectSendTransport();
-  });
-};
+    })
+    connectSendTransport()
+  })
+}
 
+// Conectar transporte de envío
 const connectSendTransport = async () => {
   audioProducer = await producerTransport.produce(audioParams);
   videoProducer = await producerTransport.produce(videoParams);
@@ -21350,49 +21348,40 @@ const connectSendTransport = async () => {
   }
 
   audioProducer.on('trackended', () => {
-    console.log('audio track ended');
-  });
+    console.log('audio track ended')
+  })
 
   audioProducer.on('transportclose', () => {
-    console.log('audio transport ended');
-  });
+    console.log('audio transport ended')
+  })
 
   videoProducer.on('trackended', () => {
-    console.log('video track ended');
-  });
+    console.log('video track ended')
+  })
 
   videoProducer.on('transportclose', () => {
-    console.log('video transport ended');
-  });
-};
+    console.log('video transport ended')
+  })
+}
 
-const getProducers = () => {
-  socket.emit('getProducers', producerIds => {
-    console.log(producerIds);
-    producerIds.forEach(signalNewConsumerTransport);
-  });
-};
-
-// -----------------------------
-// CONSUMER TRANSPORT FUNCTIONS
-// -----------------------------
+// Señalar nuevo transporte de consumo
 const signalNewConsumerTransport = async (remoteProducerId) => {
   if (consumingTransports.includes(remoteProducerId)) return;
   consumingTransports.push(remoteProducerId);
 
   await socket.emit('createWebRtcTransport', { consumer: true }, ({ params }) => {
     if (params.error) {
-      console.log(params.error);
-      return;
+      console.log(params.error)
+      return
     }
-    console.log(`PARAMS... ${params}`);
+    console.log(`PARAMS... ${params}`)
 
-    let consumerTransport;
+    let consumerTransport
     try {
-      consumerTransport = device.createRecvTransport(params);
+      consumerTransport = device.createRecvTransport(params)
     } catch (error) {
-      console.log(error);
-      return;
+      console.log(error)
+      return
     }
 
     consumerTransport.on('connect', async ({ dtlsParameters }, callback, errback) => {
@@ -21400,16 +21389,25 @@ const signalNewConsumerTransport = async (remoteProducerId) => {
         await socket.emit('transport-recv-connect', {
           dtlsParameters,
           serverConsumerTransportId: params.id,
-        });
-        callback();
+        })
+        callback()
       } catch (error) {
-        errback(error);
+        errback(error)
       }
-    });
-    connectRecvTransport(consumerTransport, remoteProducerId, params.id);
-  });
-};
+    })
+    connectRecvTransport(consumerTransport, remoteProducerId, params.id)
+  })
+}
 
+// Obtener productores
+const getProducers = () => {
+  socket.emit('getProducers', producerIds => {
+    console.log(producerIds)
+    producerIds.forEach(signalNewConsumerTransport)
+  })
+}
+
+// Conectar transporte de recepción
 const connectRecvTransport = async (consumerTransport, remoteProducerId, serverConsumerTransportId) => {
   await socket.emit('consume', {
     rtpCapabilities: device.rtpCapabilities,
@@ -21417,17 +21415,17 @@ const connectRecvTransport = async (consumerTransport, remoteProducerId, serverC
     serverConsumerTransportId,
   }, async ({ params }) => {
     if (params.error) {
-      console.log('Cannot Consume');
-      return;
+      console.log('Cannot Consume')
+      return
     }
 
-    console.log(`Consumer Params ${params}`);
+    console.log(`Consumer Params ${params}`)
     const consumer = await consumerTransport.consume({
       id: params.id,
       producerId: params.producerId,
       kind: params.kind,
       rtpParameters: params.rtpParameters
-    });
+    })
 
     consumerTransports = [
       ...consumerTransports,
@@ -21437,31 +21435,31 @@ const connectRecvTransport = async (consumerTransport, remoteProducerId, serverC
         producerId: remoteProducerId,
         consumer,
       },
-    ];
+    ]
 
-    const newElem = document.createElement('div');
-    newElem.setAttribute('id', `td-${remoteProducerId}`);
+    const newElem = document.createElement('div')
+    newElem.setAttribute('id', `td-${remoteProducerId}`)
 
     if (params.kind == 'audio') {
-      newElem.innerHTML = '<audio id="' + remoteProducerId + '" autoplay></audio>';
+      newElem.innerHTML = '<audio id="' + remoteProducerId + '" autoplay></audio>'
     } else {
-      newElem.setAttribute('class', 'remoteVideo');
-      newElem.innerHTML = '<video id="' + remoteProducerId + '" autoplay class="video" ></video>';
+      newElem.setAttribute('class', 'remoteVideo')
+      newElem.innerHTML = '<video id="' + remoteProducerId + '" autoplay class="video" ></video>'
     }
-    videoContainer.appendChild(newElem);
-    const { track } = consumer;
-    document.getElementById(remoteProducerId).srcObject = new MediaStream([track]);
-    socket.emit('consumer-resume', { serverConsumerId: params.serverConsumerId });
-  });
-};
+    videoContainer.appendChild(newElem)
+    const { track } = consumer
+    document.getElementById(remoteProducerId).srcObject = new MediaStream([track])
+    socket.emit('consumer-resume', { serverConsumerId: params.serverConsumerId })
+  })
+}
 
-// -----------------------------
-// CODE EDITOR SETUP
-// -----------------------------
+// Editor de código
+
+// Declaración de variables globales
 let editor;
 let usuarioId = null;
-const codeSocket = io("/code-editor");
 
+// Eventos al cargar el DOM
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     const response = await fetch("/api/session");
@@ -21469,38 +21467,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const userData = await response.json();
     usuarioId = userData.id;
-
-    // Initialize CodeMirror
-    editor = CodeMirror.fromTextArea(
-      document.getElementById("code-editor"),
-      {
-        mode: "python",
-        theme: "monokai",
-        lineNumbers: true,
-        autoCloseBrackets: true,
-        matchBrackets: true,
-        indentUnit: 4,
-        tabSize: 4,
-        indentWithTabs: false,
-        lineWrapping: true,
-      }
-    );
-
-    editor.setSize(null, "100%");
-
-    // Code editor event handlers
-    codeSocket.emit("sync-request");
-
-    let timeout = null;
-    editor.on("change", (cm, change) => {
-      clearTimeout(timeout);
-      timeout = setTimeout(() => {
-        codeSocket.emit("code-change", cm.getValue());
-      }, 500);
-    });
-
-    setupCodeEditorEvents();
-
   } catch (error) {
     console.error("Error al obtener el usuario:", error);
     alert("Error al obtener el usuario. Inicia sesión nuevamente.");
@@ -21508,43 +21474,75 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 });
 
-// Code socket event handlers
-codeSocket.on("code-update", (code) => {
-  if (editor && code !== editor.getValue()) {
-    const cursor = editor.getCursor();
-    editor.setValue(code);
-    editor.setCursor(cursor);
-  }
-});
+const codeSocket = io("/code-editor");
 
-codeSocket.on("execution-result", (result) => {
-  const outputDiv = document.getElementById("code-output");
-  if (result.error) {
-    outputDiv.innerHTML = `Error: ${result.error}`;
-    outputDiv.className = "error-output";
-  } else {
-    const formattedOutput = result.output
-      .split("\n")
-      .map((line) => line.replace(/\s+$/, ""))
-      .join("\n");
-    outputDiv.innerHTML = `<pre>${formattedOutput}</pre>`;
-    outputDiv.className = "success-output";
-  }
-});
+// Inicialización del editor
+document.addEventListener("DOMContentLoaded", () => {
+  editor = CodeMirror.fromTextArea(
+    document.getElementById("code-editor"),
+    {
+      mode: "python",
+      theme: "monokai",
+      lineNumbers: true,
+      autoCloseBrackets: true,
+      matchBrackets: true,
+      indentUnit: 4,
+      tabSize: 4,
+      indentWithTabs: false,
+      lineWrapping: true,
+    }
+  );
 
-const setupCodeEditorEvents = () => {
+  editor.setSize(null, "100%");
+  codeSocket.emit("sync-request");
+  let timeout = null;
+
+  // Sincronización del código
+  editor.on("change", (cm, change) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+      codeSocket.emit("code-change", cm.getValue());
+    }, 500);
+  });
+
+  codeSocket.on("code-update", (code) => {
+    if (editor && code !== editor.getValue()) {
+      const cursor = editor.getCursor();
+      editor.setValue(code);
+      editor.setCursor(cursor);
+    }
+  });
+
+  // Manejo de Ejecución de Código
   const runButton = document.getElementById("run-code");
   const outputDiv = document.getElementById("code-output");
-  const finishButton = document.getElementById("finish-task");
-  const evaluationPopup = document.getElementById("evaluation-popup");
-  const evaluationResult = document.getElementById("evaluation-result");
-  const closePopupButton = document.getElementById("close-popup");
 
   runButton.addEventListener("click", () => {
     outputDiv.innerHTML = "Ejecutando código...";
     outputDiv.className = "";
+
     codeSocket.emit("execute-code");
   });
+
+  codeSocket.on("execution-result", (result) => {
+    if (result.error) {
+      outputDiv.innerHTML = `Error: ${result.error}`;
+      outputDiv.className = "error-output";
+    } else {
+      const formattedOutput = result.output
+        .split("\n")
+        .map((line) => line.replace(/\s+$/, ""))
+        .join("\n");
+      outputDiv.innerHTML = `<pre>${formattedOutput}</pre>`;
+      outputDiv.className = "success-output";
+    }
+  });
+
+  // Manejo de Finalización de Tareas
+  const finishButton = document.getElementById("finish-task");
+  const evaluationPopup = document.getElementById("evaluation-popup");
+  const evaluationResult = document.getElementById("evaluation-result");
+  const closePopupButton = document.getElementById("close-popup");
 
   finishButton.addEventListener("click", async () => {
     const problemaId = getSelectedProblemId();
@@ -21581,11 +21579,14 @@ const setupCodeEditorEvents = () => {
         throw new Error(result.error || "Error en la evaluación");
       }
 
+      // Aquí manejamos el estado ya_resuelto
       if (result.estado === "ya_resuelto") {
         alert(result.mensaje);
         return;
       }
 
+
+      // Muestra los resultados en el popup
       evaluationResult.innerHTML = `
         <p class="mb-2">Estado: <strong>${result.estado}</strong></p>
         <p class="mb-2">Experiencia Otorgada: <strong>${result.experienciaOtorgada}</strong></p>
@@ -21603,23 +21604,22 @@ const setupCodeEditorEvents = () => {
     }
   });
 
+  // Obtener el ID del problema seleccionado
+  function getSelectedProblemId() {
+    const problemsContainer = document.getElementById("problems-container");
+    if (!problemsContainer) return null;
+
+    const problemId = problemsContainer.getAttribute("data-problem-id");
+    return problemId ? parseInt(problemId, 10) : null;
+  }
+
+  // Cerrar el popup de evaluación
   closePopupButton.addEventListener("click", () => {
     evaluationPopup.classList.add("hidden");
   });
-};
+});
 
-// Utility function for getting selected problem ID
-const getSelectedProblemId = () => {
-  const problemsContainer = document.getElementById("problems-container");
-  if (!problemsContainer) return null;
-
-  const problemId = problemsContainer.getAttribute("data-problem-id");
-  return problemId ? parseInt(problemId, 10) : null;
-};
-
-// -----------------------------
-// REWARD HANDLING
-// -----------------------------
+// Notificación de recompensa canjeada
 socket.on(`reward-redeemed-${userId}`, (data) => {
   alert(`Recompensa canjeada: ${data.recompensa.nombre}`);
   document.getElementById('user-summary').querySelector('.coins').textContent = data.nuevoSaldo;

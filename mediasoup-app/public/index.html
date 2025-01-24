@@ -6,74 +6,140 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="/static/tailwind-output.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/styles.css">
+    <link href="/static/styles.css" rel="stylesheet">
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 
 <body class="bg-gray-100 h-screen flex">
     <!-- Contenedor principal -->
-    <div id="main-container" class="flex flex-col flex-grow gap-5 p-5">
+    <div class="flex flex-col flex-grow gap-5 p-5" id="main-container">
         <!-- Enunciados -->
-        <div id="problems-container" data-problem-id="" class="flex items-center" role="region"
-            aria-label="Problemas disponibles">
-            <div id="problem-content" class="problem-details" aria-live="polite">
-                <span class="problem-title">Nombre</span>
-                <span class="problem-description">Descripción</span>
-                <span class="problem-difficulty difficulty-medium">Dificultad</span>
-            </div>
-            <div class="navigation-buttons">
-                <button id="prev-problem"
-                    class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
-                    <i class="fas fa-arrow-left"></i>
-                </button>
-                <button id="next-problem"
-                    class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
-                    <i class="fas fa-arrow-right"></i>
-                </button>
+        <div class="w-full flex flex-col items-center bg-white rounded-lg shadow-md p-4" id="problems-container"
+            x-data="problemManager()" :data-problem-id="currentProblem?.id">
+
+            <!-- Contenedor interior para centrar todo el contenido -->
+            <div class="w-full max-w-3xl">
+                <!-- Cabecera con título y navegación -->
+                <div class="flex items-center justify-between mb-3">
+                    <button
+                        class="w-8 h-8 flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full"
+                        @click="previousProblem()" :disabled="currentIndex === 0"
+                        :class="{'opacity-50 cursor-not-allowed': currentIndex === 0}">
+                        <i class="fas fa-chevron-left text-xs"></i>
+                    </button>
+
+                    <div class="flex flex-col items-center">
+                        <h2 class="text-lg font-bold text-gray-800">
+                            Misión: <span x-text="currentProblem?.titulo"></span>
+                        </h2>
+                        <!-- Estado de completado -->
+                        <template x-if="isCompleted(currentProblem?.id)">
+                            <span
+                                class="mt-1 bg-green-100 text-green-800 px-3 py-0.5 rounded-full text-sm flex items-center">
+                                <i class="fas fa-check mr-1"></i> Completado
+                            </span>
+                        </template>
+                    </div>
+
+                    <button
+                        class="w-8 h-8 flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full"
+                        @click="nextProblem()" :disabled="currentIndex === problems.length - 1"
+                        :class="{'opacity-50 cursor-not-allowed': currentIndex === problems.length - 1}">
+                        <i class="fas fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+
+                <!-- Contenido de la misión con transición -->
+                <div class="w-full" x-show="currentProblem" x-transition:enter="transition ease-out duration-300"
+                    x-transition:enter-start="opacity-0 transform translate-y-4"
+                    x-transition:enter-end="opacity-100 transform translate-y-0">
+
+                    <!-- Descripción -->
+                    <p class="text-gray-600 mb-3 text-center text-sm" x-text="currentProblem?.descripcion"></p>
+
+                    <!-- Información adicional -->
+                    <div class="flex flex-wrap items-center justify-center gap-3">
+                        <!-- Dificultad -->
+                        <span class="px-2 py-0.5 rounded-full text-xs font-medium" x-text="currentProblem?.dificultad"
+                            :class="{
+                           'bg-green-100 text-green-800': currentProblem?.dificultad === 'Fácil',
+                           'bg-yellow-100 text-yellow-800': currentProblem?.dificultad === 'Intermedio',
+                           'bg-red-100 text-red-800': currentProblem?.dificultad === 'Difícil'
+                       }">
+                        </span>
+
+                        <!-- Tiempo estimado -->
+                        <span class="text-xs text-gray-500 flex items-center">
+                            <i class="fas fa-clock mr-1"></i>
+                            <span x-text="getEstimatedTime(currentProblem?.dificultad)"></span>
+                        </span>
+
+                        <!-- Recompensas -->
+                        <div class="flex items-center gap-3">
+                            <!-- Experiencia -->
+                            <div class="flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
+                                <img class="w-3 h-3 object-contain" src="/static/images/flask.png" alt="Experiencia">
+                                <span class="text-xs font-medium" x-text="currentProblem?.experiencia + ' XP'"></span>
+                            </div>
+
+                            <!-- Monedas -->
+                            <div class="flex items-center gap-1 bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                                <img class="w-3 h-3 object-contain" src="/static/images/money-bag.png" alt="Monedas">
+                                <span class="text-xs font-medium" x-text="currentProblem?.monedas + ' monedas'"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <!-- Editor de Código -->
-        <div id="editor-container" class="flex flex-col gap-4 p-5 bg-white rounded-lg shadow-md flex-grow">
-            <textarea id="code-editor"
-                class="w-full h-80 border border-gray-300 rounded p-3 text-sm font-mono"></textarea>
+        <div class="flex flex-col gap-4 p-5 bg-white rounded-lg shadow-md flex-grow" id="editor-container">
+            <textarea class="w-full h-80 border border-gray-300 rounded p-3 text-sm font-mono"
+                id="code-editor"></textarea>
             <div class="editor-buttons flex gap-3">
-                <button id="run-code"
-                    class="btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+                <button
+                    class="btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
+                    id="run-code">
                     <i class="fas fa-play"></i> Run
                 </button>
-                <button id="finish-task"
-                    class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+                <button
+                    class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
+                    id="finish-task">
                     <i class="fas fa-paper-plane"></i> Finish
                 </button>
             </div>
-            <div id="code-output" class="bg-gray-800 text-white p-3 rounded-md font-mono mt-3 overflow-y-auto h-32">
+            <div class="bg-gray-800 text-white p-3 rounded-md font-mono mt-3 overflow-y-auto h-32" id="code-output">
             </div>
         </div>
         <!-- Botones generales -->
-        <div id="general-buttons" class="flex justify-center gap-4 mt-1">
-            <button id="chat-button"
-                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+        <div class="flex justify-center gap-4 mt-1" id="general-buttons">
+            <button
+                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
+                id="chat-button">
                 <i class="fas fa-comment"></i> Chat
             </button>
-            <button id="mute-button"
-                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+            <button
+                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
+                id="mute-button">
                 <i class="fas fa-microphone"></i> Mute
             </button>
-            <button id="hide-button"
-                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2">
+            <button
+                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
+                id="hide-button">
                 <i class="fas fa-video"></i> Hide
             </button>
         </div>
     </div>
 
     <!-- Dashboard lateral derecho -->
-    <div id="dashboard" class="w-80 bg-white shadow-lg h-screen flex flex-col">
+    <div class="w-80 bg-white shadow-lg h-screen flex flex-col" id="dashboard">
         <!-- Cabecera fija -->
         <div class="flex-shrink-0">
             <!-- Banner de bienvenida -->
-            <div id="welcome-banner" class="p-4">
-                <div id="welcome-message" class="text-lg font-bold text-gray-800">
+            <div class="p-4" id="welcome-banner">
+                <div class="text-lg font-bold text-gray-800" id="welcome-message">
                     BIENVENIDO, USUARIO
                 </div>
             </div>
@@ -101,18 +167,18 @@
         <!-- Contenidos de las pestañas -->
         <div class="flex-1 overflow-y-auto">
             <!-- Videos -->
-            <div id="videos-content" class="tab-content active p-4">
+            <div class="tab-content active p-4" id="videos-content">
                 <div class="video-group mb-4">
                     <h3 class="text-lg font-semibold text-gray-800 mb-2">Mi Video:</h3>
-                    <div id="local-video" class="video-wrapper">
-                        <video id="localVideo" class="w-full h-48 bg-black rounded-lg object-cover" autoplay
+                    <div class="video-wrapper" id="local-video">
+                        <video class="w-full h-48 bg-black rounded-lg object-cover" id="localVideo" autoplay
                             muted></video>
                     </div>
                 </div>
                 <div class="video-group mb-4">
                     <h3 class="text-lg font-semibold text-gray-800 mb-2">Otros Participantes:</h3>
                     <div id="remote-videos">
-                        <div id="videoContainer" class="space-y-4">
+                        <div class="space-y-4" id="videoContainer">
                             <!-- Videos remotos -->
                         </div>
                     </div>
@@ -120,34 +186,34 @@
             </div>
 
             <!-- Otras pestañas -->
-            <div id="rewards-content" class="tab-content hidden p-4">
+            <div class="tab-content hidden p-4" id="rewards-content">
                 <h2 class="text-xl font-bold mb-4">Recompensas</h2>
-                <div id="rewards-list" class="space-y-2">
+                <div class="space-y-2" id="rewards-list">
                     <p class="text-gray-500 text-sm">Cargando recompensas...</p>
                 </div>
             </div>
 
-            <div id="achievements-content" class="tab-content hidden p-4">
+            <div class="tab-content hidden p-4" id="achievements-content">
                 <h2 class="text-xl font-bold mb-4">Logros Disponibles</h2>
-                <div id="achievements-list" class="space-y-2">
+                <div class="space-y-2" id="achievements-list">
                     <p class="text-gray-500 text-sm">Cargando logros...</p>
                 </div>
             </div>
 
-            <div id="ranking-content" class="tab-content hidden p-4">
+            <div class="tab-content hidden p-4" id="ranking-content">
                 <h2 class="text-xl font-bold mb-4">Ranking</h2>
-                <div id="ranking-list" class="space-y-2">
+                <div class="space-y-2" id="ranking-list">
                     <p class="text-gray-500 text-sm">Cargando ranking...</p>
                 </div>
             </div>
 
-            <div id="summary-content" class="tab-content">
+            <div class="tab-content" id="summary-content">
                 <h2 class="text-xl font-bold mb-4">Resumen Personal</h2>
-                <div id="user-summary" class="bg-white p-4 rounded-lg shadow-md mb-6">
+                <div class="bg-white p-4 rounded-lg shadow-md mb-6" id="user-summary">
                     <p class="text-gray-500 text-sm">Cargando resumen...</p>
                 </div>
                 <h2 class="text-xl font-bold mb-4">Logros Desbloqueados:</h2>
-                <div id="user-achievements" class="bg-white p-4 rounded-lg shadow-md mt-6 grid grid-cols-4 gap-4 ">
+                <div class="bg-white p-4 rounded-lg shadow-md mt-6 grid grid-cols-4 gap-4 " id="user-achievements">
                     <!-- Aquí se agregarán los logros dinámicamente -->
                 </div>
             </div>
@@ -279,62 +345,105 @@
                     const recompensas = await response.json();
 
                     if (recompensas.length === 0) {
-                        rewardsList.innerHTML = `<p class="text-gray-500">No hay recompensas disponibles.</p>`;
+                        rewardsList.innerHTML = `
+                    <div class="flex flex-col items-center justify-center p-4 text-center">
+                        <img src="/static/images/empty-chest.png" alt="No hay recompensas" class="w-16 h-16 mb-2 opacity-50">
+                        <p class="text-white text-sm font-medium">No hay recompensas disponibles</p>
+                        <p class="text-gray-400 text-xs">¡Vuelve más tarde!</p>
+                    </div>`;
                         return;
                     }
 
                     rewardsList.innerHTML = recompensas.map(recompensa => `
-                <div class="reward-card p-2 border rounded-lg bg-white shadow-md flex justify-between items-center">
-                    <!-- Contenedor para nombre, precio y descripción -->
-                    <div class="flex-grow">
-                        <h4 class="text-sm font-bold text-gray-800 mb-1">${recompensa.nombre}</h4>
-                        <span class="text-sm font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded inline-flex items-center gap-1 mb-1">
-                            <img src="/static/images/coins.png" alt="Monedas" class="w-4 h-4 object-contain">
-                            $${recompensa.costo_monedas}
-                        </span>
-                        <p class="text-xs text-gray-600">${recompensa.descripcion}</p>
-                    </div>
-                    
-                    <!-- Botón de canje -->
-                    <div class="flex-shrink-0 ml-4">
-                        <button 
-                            class="redeem-btn flex items-center justify-center w-10 h-10 text-green-600 hover:text-green-700 hover:bg-green-50 rounded-lg transition-colors duration-200"
-                            data-reward-id="${recompensa.id}"
-                            title="Canjear recompensa">
-                            <i class="fas fa-plus-square text-4xl"></i>
-                        </button>
+                <div class="reward-card w-72 group">
+                    <div class="relative bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg border-2 border-slate-700 shadow-md hover:shadow-xl h-40 flex flex-col w-full">
+                        <!-- Header siempre visible -->
+                        <div class="mb-2">
+                            <h4 class="text-sm font-bold text-white tracking-tight leading-tight truncate">
+                                ${recompensa.nombre}
+                            </h4>
+                        </div>
+
+                        <!-- Content wrapper -->
+                        <div class="flex items-start gap-3">
+                            <!-- Description -->
+                            <p class="text-xs text-gray-300 line-clamp-2 flex-grow">
+                                ${recompensa.descripcion}
+                            </p>
+                            
+                            <!-- Reward Image with container similar to achievements -->
+                            <div class="flex-shrink-0">
+                                <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 transform group-hover:scale-110 transition-transform duration-300">
+                                    <div class="w-full h-full rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden">
+                                        <img 
+                                            src="/static/images/reward.png" 
+                                            alt="Reward" 
+                                            class="w-10 h-10 object-contain opacity-75 transition-all duration-300 group-hover:opacity-100 group-hover:animate-float"
+                                        >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botón siempre en la misma posición -->
+                        <div class="absolute bottom-2 right-3">
+                            <button 
+                                class="redeem-btn bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full px-4 py-2 transform transition-all duration-200 flex items-center gap-2 text-xs"
+                                data-reward-id="${recompensa.id}"
+                                title="Canjear Recompensa"
+                            >
+                                Canjear por $${recompensa.costo_monedas} <img src="/static/images/dollar.png" alt="Monedas" class="w-5 h-5">
+                            </button>
+                        </div>
                     </div>
                 </div>
             `).join('');
+
+                    // Event listeners y demás código permanece igual...
+                    document.querySelectorAll('.reward-card').forEach(card => {
+                        card.addEventListener('mouseenter', () => {
+                            const hoverSound = new Audio('/static/sounds/hover.mp3');
+                            hoverSound.volume = 0.2;
+                            hoverSound.play().catch(() => { });
+                        });
+                    });
+
                     document.querySelectorAll('.redeem-btn').forEach(button => {
                         button.addEventListener('click', async (e) => {
                             const rewardId = e.currentTarget.dataset.rewardId;
                             try {
                                 const response = await fetch('/api/recompensas/canjear', {
                                     method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
+                                    headers: { 'Content-Type': 'application/json' },
                                     body: JSON.stringify({ rewardId }),
                                 });
 
                                 const result = await response.json();
                                 if (response.ok) {
-                                    alert(`Recompensa canjeada: ${result.mensaje}`);
+                                    showRewardSuccessPopup(result.mensaje);
                                     await window.loadUserAchievements();
                                 } else {
-                                    alert(`Error: ${result.error}`);
+                                    showRewardClaimedPopup(result.error);
                                 }
                             } catch (error) {
                                 console.error('Error canjeando recompensa:', error);
-                                alert('Error canjeando recompensa.');
+                                showRewardClaimedPopup('Error al intentar canjear la recompensa.');
                             }
                         });
                     });
 
                 } catch (error) {
                     console.error('Error cargando recompensas:', error);
-                    rewardsList.innerHTML = `<p class="text-red-500">Error cargando recompensas.</p>`;
+                    rewardsList.innerHTML = `
+                <div class="text-center p-4">
+                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 mb-2">
+                        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <p class="text-white text-sm font-medium">Error cargando recompensas</p>
+                    <p class="text-gray-400 text-xs mt-1">Intenta nuevamente más tarde</p>
+                </div>`;
                 }
             };
 
@@ -352,22 +461,94 @@
                     const logros = await response.json();
 
                     if (logros.length === 0) {
-                        achievementsList.innerHTML = `<p class="text-gray-500 text-sm">No hay logros disponibles en este momento.</p>`;
+                        achievementsList.innerHTML = `
+                    <div class="flex flex-col items-center justify-center p-8 text-center">
+                        <img src="/static/images/empty-trophy.png" alt="No hay logros" class="w-24 h-24 mb-4 opacity-50">
+                        <p class="text-white text-lg font-medium">No hay logros disponibles</p>
+                        <p class="text-white">¡Vuelve más tarde para nuevos desafíos!</p>
+                    </div>`;
                         return;
                     }
 
                     achievementsList.innerHTML = logros.map(logro => `
-                    <div class="achievement-card flex justify-between items-center p-2 border rounded-lg bg-white shadow-md">
-                        <div class="flex-grow">
-                            <h4 class="text-sm font-bold text-gray-800">${logro.nombre}</h4>
-                            <p class="text-xs text-gray-600">${logro.descripcion}</p>
+<div class="achievement-card w-72 group transform transition-all duration-300 hover:scale-102">
+    <div class="relative w-full bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg shadow-lg hover:shadow-xl h-40">
+        <!-- Particles background -->
+        <div class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20"></div>
+        
+        <!-- Content container -->
+        <div class="relative h-full flex flex-col">
+            <!-- Header -->
+            <div class="mb-2">
+                <h4 class="text-sm font-bold text-white truncate pr-4">
+                    ${logro.nombre}
+                </h4>
+            </div>
+
+            <!-- Content wrapper -->
+            <div class="flex-1 flex items-start gap-3 min-h-0">
+                <!-- Description con scroll -->
+                <div class="flex-grow overflow-y-auto pr-2">
+                    <p class="text-xs text-gray-300">
+                        ${logro.descripcion}
+                    </p>
+                </div>
+                
+                <!-- Achievement icon -->
+                <div class="relative flex-shrink-0">
+                    <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 transform group-hover:scale-110 transition-transform duration-300">
+                        <div class="w-full h-full rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden">
+                            <img 
+                                src="${logro.imagen_url}" 
+                                alt="${logro.nombre}" 
+                                class="w-12 h-12 object-contain opacity-75 transition-all duration-300 group-hover:opacity-100 group-hover:animate-float"
+                            >
                         </div>
-                        <img src="${logro.imagen_url}" alt="${logro.nombre}" class="w-12 h-12 object-contain ml-4">
                     </div>
-                `).join('');
+                    <!-- Sparkle effect -->
+                    <div class="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full animate-ping opacity-75"></div>
+                    
+                    <!-- Locked indicator -->
+                    <div class="absolute -top-2 -right-2">
+                        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress bar always at bottom -->
+            <div class="mt-2 w-full">
+                <div class="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-0 group-hover:w-full transition-all duration-1000 ease-out"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+            `).join('');
+
+                    // Add hover sound effect
+                    document.querySelectorAll('.achievement-card').forEach(card => {
+                        card.addEventListener('mouseenter', () => {
+                            const hoverSound = new Audio('/static/sounds/hover.mp3');
+                            hoverSound.volume = 0.2;
+                            hoverSound.play().catch(() => { });
+                        });
+                    });
+
                 } catch (error) {
                     console.error('Error cargando logros:', error);
-                    achievementsList.innerHTML = `<p class="text-red-500 text-sm">Error cargando logros.</p>`;
+                    achievementsList.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-8 text-center">
+                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+                        <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <p class="text-white text-lg font-medium">Error cargando logros</p>
+                    <p class="text-white mt-2">Intenta nuevamente más tarde</p>
+                </div>`;
                 }
             };
 
@@ -385,40 +566,66 @@
                     const ranking = await response.json();
 
                     if (ranking.length === 0) {
-                        rankingList.innerHTML = `<p class="text-gray-500 text-sm">No hay datos de ranking disponibles.</p>`;
+                        rankingList.innerHTML = `
+                    <div class="flex flex-col items-center justify-center p-8 text-center">
+                        <p class="text-gray-500 text-sm">No hay datos de ranking disponibles.</p>
+                    </div>`;
                         return;
                     }
 
-                    rankingList.innerHTML = ranking.map((user, index) => {
+                    rankingList.innerHTML = ranking.map((user) => {
                         const isFirstPlace = user.rank === 1;
 
                         return `
-                                <div class="ranking-card flex items-center justify-between p-2 border rounded-lg bg-white shadow-md">
-                                    <div class="flex items-center">
-                                        <span class="text-sm font-bold text-gray-800 w-10 text-center">#${user.rank}</span>
-                                        <div class="flex-grow ml-2">
-                                            <h4 class="text-sm font-bold text-gray-800">${user.name}</h4>
-                                            <p class="text-xs text-gray-600">Nivel: ${user.level}</p>
-                                        </div>
+                    <div class="ranking-card transform transition-all duration-300 mb-3 ${isFirstPlace ? 'hover:scale-102' : ''}">
+                        <div class="relative w-full h-24 bg-gradient-to-br ${isFirstPlace ? 'from-indigo-500 to-purple-500' : 'from-slate-800 to-slate-900'} p-4 rounded-lg shadow-lg hover:shadow-xl">
+                            <!-- Grid background -->
+                            <div class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20"></div>
+                            
+                            <!-- Content container -->
+                            <div class="relative flex items-center justify-between h-full">
+                                <div class="flex items-center gap-4">
+                                    <span class="text-2xl font-bold ${isFirstPlace ? 'text-white' : 'text-white-400'}">#${user.rank}</span>
+                                    <div>
+                                        <h4 class="text-white font-bold">${user.name}</h4>
+                                        <p class="text-gray-300 text-sm">Nivel: ${user.level}</p>
                                     </div>
-                                    ${isFirstPlace ? '<img src="/static/images/crown.png" alt="Primera posición" class="w-8 h-9 mr-2">' : ''}
                                 </div>
-                            `;
+                                ${isFirstPlace ? `
+                                    <div class="relative">
+                                        <img src="/static/images/crown.png" alt="Primera posición" class="w-12 h-12 animate-bounce">
+                                        <div class="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
                     }).join('');
+
+                    // Add hover sound for first place
+                    const firstPlace = document.querySelector('.ranking-card');
+                    if (firstPlace) {
+                        firstPlace.addEventListener('mouseenter', () => {
+                            const hoverSound = new Audio('/static/sounds/hover.mp3');
+                            hoverSound.volume = 0.2;
+                            hoverSound.play().catch(() => { });
+                        });
+                    }
 
                 } catch (error) {
                     console.error('Error cargando ranking:', error);
-                    rankingList.innerHTML = `<p class="text-red-500 text-sm">Error cargando ranking.</p>`;
+                    rankingList.innerHTML = `
+                <div class="flex flex-col items-center justify-center p-8 text-center">
+                    <p class="text-red-500 text-sm">Error cargando ranking.</p>
+                </div>`;
                 }
             };
 
             loadRanking();
 
             const socket = io();
-            socket.on('ranking-updated', (updatedRanking) => {
-                console.log('Ranking actualizado:', updatedRanking);
-                loadRanking();
-            });
+            socket.on('ranking-updated', () => loadRanking());
         });
     </script>
     <script>
@@ -545,6 +752,103 @@
             const socket = io();
 
             let userId = null;
+            function closeAchievementPopup() {
+                const popup = document.getElementById('achievement-popup');
+                const content = document.getElementById('achievement-content');
+                content.classList.remove('scale-100');
+                content.classList.add('scale-0');
+                setTimeout(() => {
+                    popup.classList.add('hidden');
+                }, 200);
+            }
+
+            function showAchievementPopup(achievement) {
+                const popup = document.getElementById('achievement-popup');
+                const content = document.getElementById('achievement-content');
+                const nameElement = document.getElementById('achievement-name');
+                const descriptionElement = document.getElementById('achievement-description');
+
+                nameElement.textContent = achievement.name || 'Nuevo Logro';
+                descriptionElement.textContent = achievement.description || 'Has desbloqueado un nuevo logro';
+
+                popup.classList.remove('hidden');
+                // Pequeño delay para la animación
+                setTimeout(() => {
+                    content.classList.remove('scale-0');
+                    content.classList.add('scale-100');
+                    // Iniciar confeti
+                    startConfetti();
+                }, 10);
+
+                // Cerrar automáticamente después de 5 segundos
+                setTimeout(closeAchievementPopup, 5000);
+            }
+
+            function startConfetti() {
+                const canvas = document.getElementById('confetti-canvas');
+                const ctx = canvas.getContext('2d');
+
+                // Función para ajustar el tamaño del canvas
+                function resizeCanvas() {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                }
+
+                // Ajustar tamaño inicial y agregar listener para cambios de tamaño
+                resizeCanvas();
+                window.addEventListener('resize', resizeCanvas);
+
+                const pieces = [];
+                const colors = ['#ffd700', '#ff0000', '#00ff00', '#0000ff', '#ff00ff'];
+
+                // Aumentar el número de partículas y distribuirlas mejor
+                for (let i = 0; i < 150; i++) {
+                    pieces.push({
+                        x: Math.random() * canvas.width, // Posición X aleatoria en toda la pantalla
+                        y: -20 - Math.random() * canvas.height, // Comenzar desde arriba de la pantalla
+                        rot: Math.random() * 360,
+                        sp: Math.random() * 6 + 3,
+                        size: Math.random() * 8 + 5, // Tamaño variable
+                        color: colors[Math.floor(Math.random() * colors.length)]
+                    });
+                }
+
+                let count = 0;
+                function animate() {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    pieces.forEach((p) => {
+                        p.y += p.sp;
+                        p.rot += 2;
+
+                        // Movimiento ondulatorio adicional
+                        p.x += Math.sin(p.rot * Math.PI / 180) * 0.3;
+
+                        ctx.save();
+                        ctx.translate(p.x, p.y);
+                        ctx.rotate(p.rot * Math.PI / 180);
+                        ctx.fillStyle = p.color;
+                        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                        ctx.restore();
+
+                        // Reiniciar la partícula cuando sale de la pantalla
+                        if (p.y > canvas.height) {
+                            p.y = -20;
+                            p.x = Math.random() * canvas.width;
+                        }
+                    });
+
+                    count++;
+                    if (count < 300) { // Aumentar la duración de la animación
+                        requestAnimationFrame(animate);
+                    } else {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        window.removeEventListener('resize', resizeCanvas); // Limpiar el listener
+                    }
+                }
+
+                animate();
+            }
 
             fetch('/api/session')
                 .then((response) => response.json())
@@ -552,22 +856,167 @@
                     userId = data.id;
 
                     let pendingLevelUpAlert = null;
+
+                    // Función para cerrar el popup
+                    function closeLevelUpPopup() {
+                        const popup = document.getElementById('level-up-popup');
+                        const content = document.getElementById('level-up-content');
+                        content.classList.remove('scale-100');
+                        content.classList.add('scale-0');
+                        setTimeout(() => {
+                            popup.classList.add('hidden');
+                        }, 200);
+                    }
+
+                    // Función para mostrar el popup
+                    function showLevelUpPopup(newLevel) {
+                        const popup = document.getElementById('level-up-popup');
+                        const content = document.getElementById('level-up-content');
+                        const levelElement = document.getElementById('new-level-number');
+
+                        levelElement.textContent = newLevel;
+                        popup.classList.remove('hidden');
+
+                        setTimeout(() => {
+                            content.classList.remove('scale-0');
+                            content.classList.add('scale-100');
+                            startFireworks();
+                        }, 10);
+
+                        setTimeout(closeLevelUpPopup, 5000);
+                    }
+
+                    function startFireworks() {
+                        const canvas = document.getElementById('fireworks-canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        // Ajustar el tamaño del canvas al tamaño de la ventana
+                        function resizeCanvas() {
+                            canvas.width = window.innerWidth;
+                            canvas.height = window.innerHeight;
+                        }
+
+                        resizeCanvas();
+                        window.addEventListener('resize', resizeCanvas);
+
+                        class Particle {
+                            constructor(x, y, color) {
+                                this.x = x;
+                                this.y = y;
+                                this.color = color;
+                                this.velocity = {
+                                    x: (Math.random() - 0.5) * 3,
+                                    y: (Math.random() - 0.5) * 3
+                                };
+                                this.alpha = 1;
+                                this.decay = 0.015;
+                                this.radius = Math.random() * 2 + 1;
+                            }
+
+                            update() {
+                                this.velocity.y += 0.05; // Gravedad
+                                this.x += this.velocity.x;
+                                this.y += this.velocity.y;
+                                this.alpha -= this.decay;
+                            }
+
+                            draw() {
+                                ctx.save();
+                                ctx.globalAlpha = this.alpha;
+                                ctx.beginPath();
+                                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                                ctx.fillStyle = this.color;
+                                ctx.fill();
+                                ctx.restore();
+                            }
+                        }
+
+                        class Firework {
+                            constructor() {
+                                const popup = document.getElementById('level-up-content');
+                                const popupRect = popup.getBoundingClientRect();
+
+                                // Posicionar los fuegos artificiales alrededor del popup
+                                this.x = popupRect.x + Math.random() * popupRect.width;
+                                this.y = popupRect.y + Math.random() * popupRect.height;
+
+                                this.particles = [];
+                                this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
+                                this.initParticles();
+                            }
+
+                            initParticles() {
+                                const particleCount = 30;
+                                for (let i = 0; i < particleCount; i++) {
+                                    const angle = (i / particleCount) * Math.PI * 2;
+                                    const velocity = 2 + Math.random() * 2;
+
+                                    this.particles.push(new Particle(
+                                        this.x,
+                                        this.y,
+                                        this.color
+                                    ));
+                                }
+                            }
+
+                            update() {
+                                this.particles = this.particles.filter(particle => particle.alpha > 0);
+                                this.particles.forEach(particle => particle.update());
+                            }
+
+                            draw() {
+                                this.particles.forEach(particle => particle.draw());
+                            }
+
+                            isDead() {
+                                return this.particles.length === 0;
+                            }
+                        }
+
+                        const fireworks = [];
+                        let frame = 0;
+                        const maxFireworks = 10;
+                        const fireworkInterval = 15; // Intervalo entre explosiones
+
+                        function animate() {
+                            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                            // Crear nuevos fuegos artificiales periódicamente
+                            if (frame % fireworkInterval === 0 && fireworks.length < maxFireworks) {
+                                fireworks.push(new Firework());
+                            }
+
+                            // Actualizar y dibujar fuegos artificiales existentes
+                            for (let i = fireworks.length - 1; i >= 0; i--) {
+                                fireworks[i].update();
+                                fireworks[i].draw();
+
+                                if (fireworks[i].isDead()) {
+                                    fireworks.splice(i, 1);
+                                }
+                            }
+
+                            frame++;
+
+                            // Continuar la animación por un tiempo limitado
+                            if (frame < 300) { // 5 segundos aproximadamente
+                                requestAnimationFrame(animate);
+                            } else {
+                                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                                window.removeEventListener('resize', resizeCanvas);
+                            }
+                        }
+
+                        animate();
+                    }
+
                     socket.on(`user-level-up-${userId}`, ({ newLevel }) => {
-                        pendingLevelUpAlert = `¡Felicidades! Has alcanzado el nivel ${newLevel}.`;
+                        showLevelUpPopup(newLevel);
                     });
 
                     socket.on(`achievement-unlocked-${userId}`, async (achievement) => {
-                        console.log('Nuevo logro desbloqueado - Datos completos:', JSON.stringify(achievement, null, 2));
-                        console.log('Propiedades disponibles:', Object.keys(achievement));
-                        console.log('Nombre:', achievement.name);
-                        console.log('Descripción:', achievement.description);
-
-                        // Verificar si los datos son undefined antes de mostrar el alert
-                        const nombreLogro = achievement.name || 'Nombre no disponible';
-                        const descripcionLogro = achievement.description || 'Descripción no disponible';
-
-                        alert(`¡Logro desbloqueado!\nNombre: ${nombreLogro}\nDescripción: ${descripcionLogro}`);
-
+                        showAchievementPopup(achievement);
                         await window.loadUserAchievements();
                     });
 
@@ -637,19 +1086,304 @@
         });
     </script>
 
-    <div id="evaluation-popup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('problemManager', () => ({
+                problems: [],
+                currentIndex: 0,
+                completedExercises: [],
+
+                init() {
+                    this.loadProblems();
+                    this.loadCompletedExercises();
+                },
+
+                get currentProblem() {
+                    return this.problems[this.currentIndex];
+                },
+
+                async loadProblems() {
+                    try {
+                        const response = await fetch('/api/problemas/disponibles');
+                        if (!response.ok) throw new Error('Error al obtener problemas');
+                        this.problems = await response.json();
+                    } catch (error) {
+                        console.error('Error cargando problemas:', error);
+                    }
+                },
+
+                async loadCompletedExercises() {
+                    try {
+                        const response = await fetch('/api/usuario/ejercicios-completados');
+                        if (response.ok) {
+                            this.completedExercises = await response.json();
+                        }
+                    } catch (error) {
+                        console.error('Error cargando ejercicios completados:', error);
+                    }
+                },
+
+                isCompleted(problemId) {
+                    return this.completedExercises.includes(problemId);
+                },
+
+                previousProblem() {
+                    if (this.currentIndex > 0) {
+                        this.currentIndex--;
+                    }
+                },
+
+                nextProblem() {
+                    if (this.currentIndex < this.problems.length - 1) {
+                        this.currentIndex++;
+                    }
+                },
+
+                getEstimatedTime(difficulty) {
+                    const times = {
+                        'Fácil': '05-10 min',
+                        'Intermedio': '10-15 min',
+                        'Difícil': '20-30 min'
+                    };
+                    return times[difficulty] || '10-20 min';
+                }
+            }));
+        });
+    </script>
+
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden" id="evaluation-popup">
         <div class="bg-white w-96 p-6 rounded-lg shadow-lg">
             <h3 class="text-lg font-bold text-gray-800 mb-4">Resultado de la Evaluación</h3>
-            <div id="evaluation-result" class="text-gray-700">
+            <div class="text-gray-700" id="evaluation-result">
             </div>
             <div class="flex justify-end mt-4">
-                <button id="close-popup"
-                    class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                <button class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                    id="close-popup">
                     Cerrar
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- Achievement Popup -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
+        id="achievement-popup">
+        <div class="relative bg-white w-[600px] p-8 rounded-xl shadow-2xl transform transition-all scale-0"
+            id="achievement-content">
+            <!-- Confetti canvas -->
+            <canvas class="fixed inset-0 pointer-events-none z-50 w-full h-full" id="confetti-canvas"></canvas>
+
+            <div class="flex items-center gap-8">
+                <img class="w-24 h-24 object-contain" src="/static/images/trophy.png" alt="Trophy">
+                <div class="flex-1">
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">¡Logro Desbloqueado!</h3>
+                    <div id="achievement-info">
+                        <p class="font-semibold text-xl text-indigo-600 mb-2" id="achievement-name"></p>
+                        <p class="text-lg text-gray-600" id="achievement-description"></p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+                onclick="closeAchievementPopup()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Level Up Popup -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50" id="level-up-popup">
+        <!-- Canvas debe estar antes del contenido para estar detrás -->
+        <canvas class="fixed inset-0 pointer-events-none w-full h-full" id="fireworks-canvas"></canvas>
+
+        <div class="relative bg-white w-[600px] p-8 rounded-xl shadow-2xl transform transition-all scale-0"
+            id="level-up-content">
+            <div class="flex items-center gap-8">
+                <img class="w-24 h-24 object-contain" src="/static/images/level-up.png" alt="Level Up">
+                <div class="flex-1">
+                    <h3 class="text-3xl font-bold text-indigo-600 mb-4">¡Has Subido de Nivel!</h3>
+                    <div id="level-up-info">
+                        <p class="text-xl font-bold text-gray-800 mb-2">Nivel <span id="new-level-number"></span></p>
+                        <p class="text-lg text-gray-600">¡Sigue así! Cada vez estás más cerca de convertirte en un
+                            maestro.</p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+                onclick="closeLevelUpPopup()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Already Claimed Reward Popup -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
+        id="reward-claimed-popup">
+        <div class="relative bg-white w-[600px] p-8 rounded-xl shadow-2xl transform transition-all scale-0"
+            id="reward-claimed-content">
+            <div class="flex items-center gap-8">
+                <img class="w-24 h-24 object-contain" src="/static/images/out-of-stock.png" alt="Already Claimed">
+                <div class="flex-1">
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">Recompensa No Disponible</h3>
+                    <div id="reward-claimed-info">
+                        <p class="text-lg text-gray-600" id="reward-claimed-message"></p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+                onclick="closeRewardClaimedPopup()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function showRewardClaimedPopup(message) {
+            const popup = document.getElementById('reward-claimed-popup');
+            const content = document.getElementById('reward-claimed-content');
+            const messageElement = document.getElementById('reward-claimed-message');
+
+            messageElement.textContent = message;
+            popup.classList.remove('hidden');
+
+            setTimeout(() => {
+                content.classList.remove('scale-0');
+                content.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeRewardClaimedPopup() {
+            const popup = document.getElementById('reward-claimed-popup');
+            const content = document.getElementById('reward-claimed-content');
+
+            content.classList.remove('scale-100');
+            content.classList.add('scale-0');
+
+            setTimeout(() => {
+                popup.classList.add('hidden');
+            }, 200);
+        }
+    </script>
+
+    <!-- Reward Claimed Successfully Popup -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
+        id="reward-success-popup">
+        <div class="relative bg-white w-[600px] p-8 rounded-xl shadow-2xl transform transition-all scale-0"
+            id="reward-success-content">
+            <!-- Confetti canvas -->
+            <canvas class="fixed inset-0 pointer-events-none z-50 w-full h-full" id="reward-confetti-canvas"></canvas>
+
+            <div class="flex items-center gap-8">
+                <img class="w-24 h-24 object-contain" src="/static/images/reward.png" alt="Reward">
+                <div class="flex-1">
+                    <h3 class="text-3xl font-bold text-gray-800 mb-4">¡Recompensa Canjeada!</h3>
+                    <div id="reward-success-info">
+                        <p class="text-lg text-gray-600" id="reward-success-message"></p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+                onclick="closeRewardSuccessPopup()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function showRewardSuccessPopup(message) {
+            const popup = document.getElementById('reward-success-popup');
+            const content = document.getElementById('reward-success-content');
+            const messageElement = document.getElementById('reward-success-message');
+
+            messageElement.textContent = message;
+            popup.classList.remove('hidden');
+
+            setTimeout(() => {
+                content.classList.remove('scale-0');
+                content.classList.add('scale-100');
+                startRewardConfetti();
+            }, 10);
+
+            // Cerrar automáticamente después de 5 segundos
+            setTimeout(closeRewardSuccessPopup, 5000);
+        }
+
+        function closeRewardSuccessPopup() {
+            const popup = document.getElementById('reward-success-popup');
+            const content = document.getElementById('reward-success-content');
+
+            content.classList.remove('scale-100');
+            content.classList.add('scale-0');
+
+            setTimeout(() => {
+                popup.classList.add('hidden');
+            }, 200);
+        }
+
+        function startRewardConfetti() {
+            const canvas = document.getElementById('reward-confetti-canvas');
+            const ctx = canvas.getContext('2d');
+
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+
+            const pieces = [];
+            const colors = ['#FFD700', '#FFA500', '#FF6347', '#FF69B4', '#4169E1'];
+
+            for (let i = 0; i < 150; i++) {
+                pieces.push({
+                    x: Math.random() * canvas.width,
+                    y: -20 - Math.random() * canvas.height,
+                    rot: Math.random() * 360,
+                    sp: Math.random() * 6 + 3,
+                    size: Math.random() * 8 + 5,
+                    color: colors[Math.floor(Math.random() * colors.length)]
+                });
+            }
+
+            let count = 0;
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                pieces.forEach((p) => {
+                    p.y += p.sp;
+                    p.rot += 2;
+                    p.x += Math.sin(p.rot * Math.PI / 180) * 0.3;
+
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(p.rot * Math.PI / 180);
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
+                    ctx.restore();
+
+                    if (p.y > canvas.height) {
+                        p.y = -20;
+                        p.x = Math.random() * canvas.width;
+                    }
+                });
+
+                count++;
+                if (count < 300) {
+                    requestAnimationFrame(animate);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    window.removeEventListener('resize', resizeCanvas);
+                }
+            }
+
+            animate();
+        }
+    </script>
+
 </body>
 
 </html>

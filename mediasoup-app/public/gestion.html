@@ -1,54 +1,77 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Panel de Control</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Righteous&family=Russo+One&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS (usando el CDN de la versión 3, que incluye la paleta slate) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <style>
+    /* Tipografías personalizadas */
+    .game-title {
+      font-family: 'Press Start 2P', cursive;
+    }
+    .game-header {
+      font-family: 'Righteous', cursive;
+    }
+    .game-text {
+      font-family: 'Russo One', sans-serif;
+    }
+  </style>
 </head>
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
-  <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">
-    <h1 class="text-2xl font-bold text-center mb-6">Panel de Control</h1>
+<body class="relative min-h-screen">
+  <!-- Fondo Absoluto con el gradiente solicitado -->
+  <div class="absolute inset-0" style="background: linear-gradient(to bottom right, #1e293b, #0f172a);"></div>
 
-    <div class="space-y-4">
-      <!-- Ver Respuestas -->
-      <button onclick="window.location.href='/ver-respuestas'" class="w-full flex items-center justify-between bg-blue-500 text-white py-3 px-4 rounded-lg hover:bg-blue-600">
-        <span><i class="fas fa-file-alt mr-2"></i> Ver Respuestas</span>
-        <i class="fas fa-chevron-right"></i>
-      </button>
+  <!-- Contenedor principal (relativo) para sobreponer el fondo -->
+  <div class="relative flex items-center justify-center min-h-screen z-10">
+    <!-- Panel de Control con fondo oscuro (gradiente) -->
+    <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-lg shadow-lg w-full max-w-md">
+      <h1 class="game-header text-3xl text-center mb-6 text-white">Panel de Control</h1>
+      <div class="space-y-4">
+        <!-- Botón: Ver Respuestas -->
+        <button onclick="window.location.href='/ver-respuestas'" 
+                class="w-full flex items-center justify-between bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white py-3 px-4 rounded-[50px] shadow-md transition duration-300 game-text">
+          <span><i class="fas fa-file-alt mr-2"></i> Ver Respuestas</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
 
-      <!-- Ver Usuarios -->
-      <button onclick="window.location.href='/estudiantes'" class="w-full flex items-center justify-between bg-green-500 text-white py-3 px-4 rounded-lg hover:bg-green-600">
-        <span><i class="fas fa-users mr-2"></i> Ver Estudiantes</span>
-        <i class="fas fa-chevron-right"></i>
-      </button>
+        <!-- Botón: Ver Estudiantes -->
+        <button onclick="window.location.href='/estudiantes'" 
+                class="w-full flex items-center justify-between bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white py-3 px-4 rounded-[50px] shadow-md transition duration-300 game-text">
+          <span><i class="fas fa-users mr-2"></i> Ver Estudiantes</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
 
-      <!-- Gestión de Ejercicios -->
-      <button onclick="window.location.href='/gestion-ejercicios'" class="w-full flex items-center justify-between bg-yellow-500 text-white py-3 px-4 rounded-lg hover:bg-yellow-600">
-        <span><i class="fas fa-tasks mr-2"></i> Gestión de Ejercicios</span>
-        <i class="fas fa-chevron-right"></i>
-      </button>
+        <!-- Botón: Gestión de Ejercicios -->
+        <button onclick="window.location.href='/gestion-ejercicios'" 
+                class="w-full flex items-center justify-between bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white py-3 px-4 rounded-[50px] shadow-md transition duration-300 game-text">
+          <span><i class="fas fa-tasks mr-2"></i> Gestión de Ejercicios</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
 
-      <!-- Gestión de Recompensas -->
-      <button onclick="window.location.href='/gestion-recompensas'" class="w-full flex items-center justify-between bg-purple-500 text-white py-3 px-4 rounded-lg hover:bg-purple-600">
-        <span><i class="fas fa-gift mr-2"></i> Gestión de Recompensas</span>
-        <i class="fas fa-chevron-right"></i>
-      </button>
+        <!-- Botón: Gestión de Recompensas -->
+        <button onclick="window.location.href='/gestion-recompensas'" 
+                class="w-full flex items-center justify-between bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white py-3 px-4 rounded-[50px] shadow-md transition duration-300 game-text">
+          <span><i class="fas fa-gift mr-2"></i> Gestión de Recompensas</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
 
-      <!-- Recompensas Canjeadas -->
-      <button onclick="window.location.href='/recompensas-canjeadas'" class="w-full flex items-center justify-between bg-red-500 text-white py-3 px-4 rounded-lg hover:bg-red-600">
-        <span><i class="fas fa-gifts mr-2"></i> Recompensas Canjeadas</span>
-        <i class="fas fa-chevron-right"></i>
+        <!-- Botón: Recompensas Canjeadas -->
+        <button onclick="window.location.href='/recompensas-canjeadas'" 
+                class="w-full flex items-center justify-between bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white py-3 px-4 rounded-[50px] shadow-md transition duration-300 game-text">
+          <span><i class="fas fa-gifts mr-2"></i> Recompensas Canjeadas</span>
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
     </div>
   </div>
 
-  <script>
-    function navigateTo(component) {
-      alert(`Redirigiendo a: ${component}`);
-      // Aquí podrías implementar la navegación real, por ejemplo:
-      // window.location.href = `/${component}`;
-    }
-  </script>
+  <!-- Alpine JS para ampliar funcionalidades futuras -->
+  <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </body>
 </html>

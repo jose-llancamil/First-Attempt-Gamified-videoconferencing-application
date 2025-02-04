@@ -21229,12 +21229,12 @@ const toggleAudio = async () => {
 
   if (isAudioMuted) {
     await audioProducer.pause();
-    muteButton.innerHTML = '<i class="fas fa-microphone-slash"></i><span>Unmute</span>';
-    muteButton.classList.add('muted');
+    muteButton.innerHTML = '<i class="fas fa-microphone-slash"></i>';
+    muteButton.classList.add('active'); // Cambiamos 'muted' por 'active'
   } else {
     await audioProducer.resume();
-    muteButton.innerHTML = '<i class="fas fa-microphone"></i><span>Mute</span>';
-    muteButton.classList.remove('muted');
+    muteButton.innerHTML = '<i class="fas fa-microphone"></i>';
+    muteButton.classList.remove('active');
   }
 
   if (localStream) {
@@ -21253,13 +21253,13 @@ const toggleVideo = async () => {
 
   if (isVideoHidden) {
     await videoProducer.pause();
-    hideButton.innerHTML = '<i class="fas fa-video-slash"></i><span>Show</span>';
-    hideButton.classList.add('hidden');
+    hideButton.innerHTML = '<i class="fas fa-video-slash"></i>';
+    hideButton.classList.add('active'); // Cambiamos 'hidden' por 'active'
     localVideo.classList.add('video-hidden');
   } else {
     await videoProducer.resume();
-    hideButton.innerHTML = '<i class="fas fa-video"></i><span>Hide</span>';
-    hideButton.classList.remove('hidden');
+    hideButton.innerHTML = '<i class="fas fa-video"></i>';
+    hideButton.classList.remove('active');
     localVideo.classList.remove('video-hidden');
   }
 
@@ -21548,19 +21548,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const problemaId = getSelectedProblemId();
 
     if (!problemaId) {
-      alert("Por favor, selecciona un problema.");
+      showErrorPopup("Por favor, selecciona un problema.");
       return;
     }
 
     const userCode = editor?.getValue()?.trim();
 
     if (!userCode) {
-      alert("El código no puede estar vacío.");
+      showErrorPopup("El código no puede estar vacío.");
       return;
     }
 
+    // Deshabilitar botón y cambiar apariencia
     finishButton.disabled = true;
-    finishButton.textContent = "Evaluando...";
+    finishButton.className = "relative overflow-hidden btn text-white font-bold game-text py-3 px-8 rounded-[50px] flex items-center gap-2 bg-gradient-to-br from-indigo-400 to-purple-400 opacity-75 cursor-not-allowed transition-all duration-300 shadow-md";
+    finishButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Evaluando...';
 
     try {
       const response = await fetch("/api/respuestas/evaluar", {
@@ -21576,30 +21578,29 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json();
 
       if (!response.ok) {
+        showErrorPopup(result.error || "Error en la evaluación");
         throw new Error(result.error || "Error en la evaluación");
       }
 
-      // Aquí manejamos el estado ya_resuelto
       if (result.estado === "ya_resuelto") {
-        alert(result.mensaje);
+        showErrorPopup(result.mensaje);
         return;
       }
 
+      // Mostrar el popup correspondiente según el resultado
+      if (result.estado === "Aceptado") {
+        showCorrectAnswerPopup(result);
+      } else {
+        showIncorrectAnswerPopup();
+      }
 
-      // Muestra los resultados en el popup
-      evaluationResult.innerHTML = `
-        <p class="mb-2">Estado: <strong>${result.estado}</strong></p>
-        <p class="mb-2">Experiencia Otorgada: <strong>${result.experienciaOtorgada}</strong></p>
-        <p>Monedas Otorgadas: <strong>${result.monedasOtorgadas}</strong></p>
-      `;
-
-      evaluationPopup.classList.remove("hidden");
     } catch (error) {
       console.error("Error en la evaluación:", error);
-      evaluationResult.innerHTML = `<p class="text-red-500">Error: ${error.message}</p>`;
-      evaluationPopup.classList.remove("hidden");
+      showErrorPopup(error.message);
     } finally {
+      // Restaurar el botón a su estado original
       finishButton.disabled = false;
+      finishButton.className = "relative overflow-hidden editor-btn text-white game-text py-3 px-8 rounded-[50px] flex items-center gap-2 bg-gradient-to-br from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-md";
       finishButton.innerHTML = '<i class="fas fa-paper-plane"></i> Finish';
     }
   });

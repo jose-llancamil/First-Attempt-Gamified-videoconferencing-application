@@ -1,86 +1,104 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Recompensas Canjeadas</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recompensas Canjeadas</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Righteous&family=Russo+One&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS (CDN que soporta la paleta slate) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+  <style>
+    /* Tipografías personalizadas */
+    .game-header {
+      font-family: 'Righteous', cursive;
+    }
+    .game-text {
+      font-family: 'Russo One', sans-serif;
+    }
+  </style>
 </head>
+<body class="relative min-h-screen">
+  <!-- Fondo Absoluto -->
+  <div class="absolute inset-0 bg-gradient-to-br from-slate-800 to-slate-900"></div>
 
-<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
-    <div class="bg-white p-8 rounded-lg shadow-lg w-full max-w-5xl">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-2xl font-bold">Recompensas Canjeadas</h1>
-            <button onclick="goBack()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-                <i class="fas fa-arrow-left"></i> Volver
-            </button>
-        </div>
+  <!-- Contenedor Principal -->
+  <div class="relative z-10 flex flex-col items-center justify-center p-4 min-h-screen">
+    <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-8 rounded-lg shadow-lg w-full max-w-5xl">
+      <!-- Encabezado y botón Volver -->
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="game-header text-3xl text-white">Recompensas Canjeadas</h1>
+        <button onclick="goBack()" class="bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white px-4 py-2 rounded-[50px] shadow-md transition duration-300 game-text">
+          <i class="fas fa-arrow-left"></i> Volver
+        </button>
+      </div>
 
-        <!-- Tabla de Recompensas -->
-        <div class="overflow-x-auto">
-            <table class="table-auto w-full border-collapse border border-gray-300">
-                <thead>
-                    <tr class="bg-gray-200">
-                        <th class="border border-gray-300 px-4 py-2">Usuario</th>
-                        <th class="border border-gray-300 px-4 py-2">Recompensa</th>
-                        <th class="border border-gray-300 px-4 py-2">Fecha Canje</th>
-                    </tr>
-                </thead>
-                <tbody id="redemptionsBody">
-                    <!-- Datos dinámicos serán inyectados aquí -->
-                </tbody>
-            </table>
-        </div>
+      <!-- Tabla de Recompensas -->
+      <div class="overflow-x-auto">
+        <table class="table-auto w-full border-collapse">
+          <thead>
+            <tr class="bg-slate-700">
+              <th class="border border-slate-600 px-4 py-2 text-white">Usuario</th>
+              <th class="border border-slate-600 px-4 py-2 text-white">Recompensa</th>
+              <th class="border border-slate-600 px-4 py-2 text-white">Fecha Canje</th>
+            </tr>
+          </thead>
+          <tbody id="redemptionsBody" class="text-white">
+            <!-- Los datos dinámicos serán inyectados aquí -->
+          </tbody>
+        </table>
+      </div>
     </div>
+  </div>
 
-    <script>
-        async function fetchRedemptions() {
-            try {
-                const response = await fetch('/api/recompensas-canjeadas');
-                if (!response.ok) {
-                    throw new Error(`Error del servidor: ${response.status}`);
-                }
-                const redemptions = await response.json();
+  <!-- Scripts -->
+  <script>
+    async function fetchRedemptions() {
+      try {
+        const response = await fetch('/api/recompensas-canjeadas');
+        if (!response.ok) {
+          throw new Error(`Error del servidor: ${response.status}`);
+        }
+        const redemptions = await response.json();
 
-                if (!Array.isArray(redemptions)) {
-                    throw new Error('La respuesta no es un arreglo.');
-                }
-
-                renderRedemptions(redemptions);
-            } catch (error) {
-                console.error('Error al obtener recompensas canjeadas:', error);
-                alert('Hubo un problema al cargar las recompensas canjeadas. Inténtalo más tarde.');
-            }
+        if (!Array.isArray(redemptions)) {
+          throw new Error('La respuesta no es un arreglo.');
         }
 
-        function renderRedemptions(redemptions) {
-            const tbody = document.getElementById('redemptionsBody');
-            tbody.innerHTML = '';
-            if (redemptions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4">No se encontraron recompensas canjeadas.</td></tr>';
-                return;
-            }
+        renderRedemptions(redemptions);
+      } catch (error) {
+        console.error('Error al obtener recompensas canjeadas:', error);
+        alert('Hubo un problema al cargar las recompensas canjeadas. Inténtalo más tarde.');
+      }
+    }
 
-            redemptions.forEach((redemption) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="border border-gray-300 px-4 py-2">${redemption.usuario_nombre}</td>
-                    <td class="border border-gray-300 px-4 py-2">${redemption.recompensa_nombre}</td>
-                    <td class="border border-gray-300 px-4 py-2">${new Date(redemption.fecha_canje).toLocaleString()}</td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
+    function renderRedemptions(redemptions) {
+      const tbody = document.getElementById('redemptionsBody');
+      tbody.innerHTML = '';
+      if (redemptions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="text-center py-4">No se encontraron recompensas canjeadas.</td></tr>';
+        return;
+      }
 
-        function goBack() {
-            window.location.href = '/gestion.html';
-        }
+      redemptions.forEach((redemption) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td class="border border-slate-600 px-4 py-2">${redemption.usuario_nombre}</td>
+          <td class="border border-slate-600 px-4 py-2">${redemption.recompensa_nombre}</td>
+          <td class="border border-slate-600 px-4 py-2">${new Date(redemption.fecha_canje).toLocaleString()}</td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
 
-        // Inicializar la tabla con los datos existentes
-        fetchRedemptions();
-    </script>
+    function goBack() {
+      window.location.href = '/gestion.html';
+    }
+
+    // Inicializar la tabla con los datos existentes
+    fetchRedemptions();
+  </script>
 </body>
-
 </html>

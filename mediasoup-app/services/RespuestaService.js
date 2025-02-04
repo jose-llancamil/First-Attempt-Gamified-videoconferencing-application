@@ -36,13 +36,13 @@ const RespuestaService = {
 
   async getRespuestas(filters = {}) {
     const respuestas = await this.findAll(filters);
-  
+
     // Enriquecer las respuestas con detalles de usuario y problema
     const respuestasConDetalles = await Promise.all(
       respuestas.map(async (respuesta) => {
         const usuario = await db('users').where({ id: respuesta.usuario_id }).first();
         const problema = await db('problemas').where({ id: respuesta.problema_id }).first();
-  
+
         return {
           ...respuesta,
           usuario_nombre: usuario ? usuario.name : 'Desconocido',
@@ -50,7 +50,7 @@ const RespuestaService = {
         };
       })
     );
-  
+
     return respuestasConDetalles;
   },
 
@@ -63,22 +63,26 @@ const RespuestaService = {
         'users.name as usuario_nombre',
         'problemas.titulo as problema_titulo'
       );
-  
+
     if (filters.usuario_nombre) {
       query = query.where('users.name', 'ilike', `%${filters.usuario_nombre}%`);
     }
     if (filters.problema_titulo) {
       query = query.where('problemas.titulo', 'ilike', `%${filters.problema_titulo}%`);
     }
-  
+
     return query;
-  },  
+  },
 
   async evaluateRespuesta(usuario_id, problema_id, respuesta, io) {
     console.log('Datos recibidos para evaluación:', { usuario_id, problema_id, respuesta });
 
     if (!usuario_id || !problema_id || !respuesta) {
-      throw new Error('Faltan campos obligatorios para la evaluación.');
+      return {
+        tipo: 'error',
+        mensaje: 'Faltan campos obligatorios para la evaluación.',
+        estado: 'error'
+      };
     }
 
     const yaResuelto = await db('respuestas')
@@ -92,13 +96,18 @@ const RespuestaService = {
     if (yaResuelto) {
       return {
         estado: 'ya_resuelto',
+        tipo: 'error',
         mensaje: 'El problema ya fue resuelto previamente.',
       };
     }
 
     const problema = await ProblemaEntity.findById(problema_id);
     if (!problema) {
-      throw new Error(`El problema con ID ${problema_id} no existe.`);
+      return {
+        tipo: 'error',
+        mensaje: `El problema con ID ${problema_id} no existe.`,
+        estado: 'error'
+      };
     }
 
     const { entradas, salidas_esperadas: salidasEsperadas } = await ProblemaEntity.getEntradasYSalidas(problema_id);
@@ -113,7 +122,11 @@ const RespuestaService = {
 
     const userFunctionName = /def (\w+)\(/.exec(respuesta)?.[1];
     if (!userFunctionName) {
-      throw new Error('El código enviado no contiene una función válida.');
+      return {
+        tipo: 'error',
+        mensaje: 'El código enviado no contiene una función válida.',
+        estado: 'error'
+      };
     }
 
     const normalizedCode = respuesta.trim();

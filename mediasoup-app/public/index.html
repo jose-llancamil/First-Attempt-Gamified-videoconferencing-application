@@ -4,6 +4,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Righteous&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+    <style>
+        .game-title {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        .game-header {
+            font-family: 'Righteous', cursive;
+        }
+
+        .game-text {
+            font-family: 'Russo One', sans-serif;
+        }
+    </style>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -12,82 +29,97 @@
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </head>
 
-<body class="bg-gray-100 h-screen flex">
+<body class="bg-gradient-to-br from-slate-900 to-slate-800 h-screen flex">
     <!-- Contenedor principal -->
     <div class="flex flex-col flex-grow gap-5 p-5" id="main-container">
         <!-- Enunciados -->
-        <div class="w-full flex flex-col items-center bg-white rounded-lg shadow-md p-4" id="problems-container"
-            x-data="problemManager()" :data-problem-id="currentProblem?.id">
+        <div class="relative bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 rounded-lg w-full"
+            id="problems-container" x-data="problemManager()" :data-problem-id="currentProblem?.id">
+            <div
+                class="relative bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg w-full flex flex-col items-center">
+                <div class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20"></div>
 
-            <!-- Contenedor interior para centrar todo el contenido -->
-            <div class="w-full max-w-3xl">
-                <!-- Cabecera con título y navegación -->
-                <div class="flex items-center justify-between mb-3">
-                    <button
-                        class="w-8 h-8 flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full"
-                        @click="previousProblem()" :disabled="currentIndex === 0"
-                        :class="{'opacity-50 cursor-not-allowed': currentIndex === 0}">
-                        <i class="fas fa-chevron-left text-xs"></i>
-                    </button>
+                <!-- Contenedor interior para centrar todo el contenido -->
+                <div class="w-full max-w-3xl relative">
+                    <!-- Cabecera con título y navegación -->
+                    <div class="flex items-center justify-between mb-6 px-8">
+                        <button
+                            class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-full transform transition-all duration-200 hover:scale-105 z-10 shadow-lg"
+                            @click="previousProblem()" :disabled="currentIndex === 0"
+                            :class="{'opacity-50 cursor-not-allowed': currentIndex === 0}">
+                            <i class="fas fa-chevron-left text-xs"></i>
+                        </button>
 
-                    <div class="flex flex-col items-center">
-                        <h2 class="text-lg font-bold text-gray-800">
-                            Misión: <span x-text="currentProblem?.titulo"></span>
-                        </h2>
-                        <!-- Estado de completado -->
-                        <template x-if="isCompleted(currentProblem?.id)">
-                            <span
-                                class="mt-1 bg-green-100 text-green-800 px-3 py-0.5 rounded-full text-sm flex items-center">
-                                <i class="fas fa-check mr-1"></i> Completado
-                            </span>
-                        </template>
+                        <div class="flex flex-col items-center mx-4 flex-1 min-w-0">
+                            <div class="w-full max-w-xl mx-auto">
+                                <h2
+                                    class="text-sm text-white game-title mb-2 text-center px-4 leading-relaxed break-words">
+                                    Misión: <span x-text="currentProblem?.titulo" class="inline-block"></span>
+                                </h2>
+                            </div>
+                            <!-- Estado de completado -->
+                            <template x-if="isCompleted(currentProblem?.id)">
+                                <span
+                                    class="mt-2 bg-green-100 text-green-800 px-4 py-1 rounded-full text-sm flex items-center game-text">
+                                    <i class="fas fa-check mr-2"></i> Completado
+                                </span>
+                            </template>
+                        </div>
+
+                        <button
+                            class="w-10 h-10 flex-shrink-0 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-full transform transition-all duration-200 hover:scale-105 shadow-lg"
+                            @click="nextProblem()" :disabled="currentIndex === problems.length - 1"
+                            :class="{'opacity-50 cursor-not-allowed': currentIndex === problems.length - 1}">
+                            <i class="fas fa-chevron-right text-xs"></i>
+                        </button>
                     </div>
 
-                    <button
-                        class="w-8 h-8 flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white rounded-full"
-                        @click="nextProblem()" :disabled="currentIndex === problems.length - 1"
-                        :class="{'opacity-50 cursor-not-allowed': currentIndex === problems.length - 1}">
-                        <i class="fas fa-chevron-right text-xs"></i>
-                    </button>
-                </div>
+                    <!-- Contenido de la misión con transición -->
+                    <div class="w-full" x-show="currentProblem" x-transition:enter="transition ease-out duration-300"
+                        x-transition:enter-start="opacity-0 transform translate-y-4"
+                        x-transition:enter-end="opacity-100 transform translate-y-0">
 
-                <!-- Contenido de la misión con transición -->
-                <div class="w-full" x-show="currentProblem" x-transition:enter="transition ease-out duration-300"
-                    x-transition:enter-start="opacity-0 transform translate-y-4"
-                    x-transition:enter-end="opacity-100 transform translate-y-0">
+                        <!-- Descripción -->
+                        <p class="text-white mb-3 text-center text-sm game-text px-4"
+                            x-text="currentProblem?.descripcion"></p>
 
-                    <!-- Descripción -->
-                    <p class="text-gray-600 mb-3 text-center text-sm" x-text="currentProblem?.descripcion"></p>
+                        <!-- Información adicional -->
+                        <div class="flex flex-wrap items-center justify-center gap-3 game-text">
+                            <!-- Dificultad -->
+                            <span class="px-2 py-0.5 rounded-full text-xs font-medium"
+                                x-text="currentProblem?.dificultad" :class="{
+                            'bg-green-100 text-green-800': currentProblem?.dificultad === 'Fácil',
+                            'bg-yellow-100 text-yellow-800': currentProblem?.dificultad === 'Intermedio',
+                            'bg-red-100 text-red-800': currentProblem?.dificultad === 'Difícil'
+                        }">
+                            </span>
 
-                    <!-- Información adicional -->
-                    <div class="flex flex-wrap items-center justify-center gap-3">
-                        <!-- Dificultad -->
-                        <span class="px-2 py-0.5 rounded-full text-xs font-medium" x-text="currentProblem?.dificultad"
-                            :class="{
-                           'bg-green-100 text-green-800': currentProblem?.dificultad === 'Fácil',
-                           'bg-yellow-100 text-yellow-800': currentProblem?.dificultad === 'Intermedio',
-                           'bg-red-100 text-red-800': currentProblem?.dificultad === 'Difícil'
-                       }">
-                        </span>
-
-                        <!-- Tiempo estimado -->
-                        <span class="text-xs text-gray-500 flex items-center">
-                            <i class="fas fa-clock mr-1"></i>
-                            <span x-text="getEstimatedTime(currentProblem?.dificultad)"></span>
-                        </span>
-
-                        <!-- Recompensas -->
-                        <div class="flex items-center gap-3">
-                            <!-- Experiencia -->
-                            <div class="flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
-                                <img class="w-3 h-3 object-contain" src="/static/images/flask.png" alt="Experiencia">
-                                <span class="text-xs font-medium" x-text="currentProblem?.experiencia + ' XP'"></span>
+                            <!-- Tiempo estimado -->
+                            <div class="flex items-center gap-1 bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                <i class="fas fa-clock"></i>
+                                <span class="text-xs font-medium"
+                                    x-text="getEstimatedTime(currentProblem?.dificultad)"></span>
                             </div>
 
-                            <!-- Monedas -->
-                            <div class="flex items-center gap-1 bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
-                                <img class="w-3 h-3 object-contain" src="/static/images/money-bag.png" alt="Monedas">
-                                <span class="text-xs font-medium" x-text="currentProblem?.monedas + ' monedas'"></span>
+                            <!-- Recompensas -->
+                            <div class="flex items-center gap-3">
+                                <!-- Experiencia -->
+                                <div
+                                    class="flex items-center gap-1 bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">
+                                    <img class="w-3 h-3 object-contain" src="/static/images/flask.png"
+                                        alt="Experiencia">
+                                    <span class="text-xs font-medium"
+                                        x-text="currentProblem?.experiencia + ' XP'"></span>
+                                </div>
+
+                                <!-- Monedas -->
+                                <div
+                                    class="flex items-center gap-1 bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">
+                                    <img class="w-3 h-3 object-contain" src="/static/images/money-bag.png"
+                                        alt="Monedas">
+                                    <span class="text-xs font-medium"
+                                        x-text="currentProblem?.monedas + ' Monedas'"></span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -95,71 +127,90 @@
             </div>
         </div>
         <!-- Editor de Código -->
-        <div class="flex flex-col gap-4 p-5 bg-white rounded-lg shadow-md flex-grow" id="editor-container">
-            <textarea class="w-full h-80 border border-gray-300 rounded p-3 text-sm font-mono"
-                id="code-editor"></textarea>
-            <div class="editor-buttons flex gap-3">
-                <button
-                    class="btn bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
-                    id="run-code">
-                    <i class="fas fa-play"></i> Run
-                </button>
-                <button
-                    class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
-                    id="finish-task">
-                    <i class="fas fa-paper-plane"></i> Finish
-                </button>
+        <div class="relative bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 rounded-lg flex-grow"
+            id="editor-container-wrapper">
+            <div
+                class="flex flex-col gap-4 p-5 bg-gradient-to-br from-slate-900 to-slate-800 rounded-lg shadow-md h-full">
+                <textarea
+                    class="w-full h-80 rounded-lg p-3 text-sm font-mono bg-gray-800 text-white border border-indigo-500/30 focus:border-indigo-500/50 outline-none resize-none overflow-y-auto overflow-x-hidden whitespace-pre-wrap word-wrap break-word"
+                    id="code-editor"></textarea>
+
+                <div class="editor-buttons flex gap-3">
+                    <button
+                        class="editor-btn relative overflow-hidden text-white py-3 px-8 rounded-[50px] flex items-center gap-2 bg-gradient-to-br from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-md min-w-[120px] justify-center game-text"
+                        id="run-code">
+                        <i class="fas fa-play"></i> Run
+                    </button>
+                    <button
+                        class="editor-btn relative overflow-hidden text-white py-3 px-8 rounded-[50px] flex items-center gap-2 bg-gradient-to-br from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 transition-all duration-300 shadow-md min-w-[120px] justify-center game-text"
+                        id="finish-task">
+                        <i class="fas fa-paper-plane"></i> Finish
+                    </button>
+                </div>
+
+                <div class="bg-gray-800 text-white p-3 rounded-lg font-mono h-32 border border-indigo-500/30 overflow-y-auto overflow-x-hidden whitespace-pre-wrap word-wrap break-word"
+                    id="code-output">
+                </div>
             </div>
-            <div class="bg-gray-800 text-white p-3 rounded-md font-mono mt-3 overflow-y-auto h-32" id="code-output">
-            </div>
-        </div>
-        <!-- Botones generales -->
-        <div class="flex justify-center gap-4 mt-1" id="general-buttons">
-            <button
-                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
-                id="chat-button">
-                <i class="fas fa-comment"></i> Chat
-            </button>
-            <button
-                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
-                id="mute-button">
-                <i class="fas fa-microphone"></i> Mute
-            </button>
-            <button
-                class="btn bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded flex items-center gap-2"
-                id="hide-button">
-                <i class="fas fa-video"></i> Hide
-            </button>
         </div>
     </div>
 
     <!-- Dashboard lateral derecho -->
-    <div class="w-80 bg-white shadow-lg h-screen flex flex-col" id="dashboard">
+    <div class="w-80 bg-gradient-to-br from-slate-900 to-slate-800 shadow-lg h-screen flex flex-col" id="dashboard">
         <!-- Cabecera fija -->
         <div class="flex-shrink-0">
             <!-- Banner de bienvenida -->
-            <div class="p-4" id="welcome-banner">
-                <div class="text-lg font-bold text-gray-800" id="welcome-message">
-                    BIENVENIDO, USUARIO
+            <div class="relative bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 rounded-lg m-4">
+                <div class="relative bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg" id="welcome-banner">
+                    <div class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20">
+                    </div>
+                    <div class="text-sm game-text text-white relative" id="welcome-message">
+                        BIENVENIDO, USUARIO
+                    </div>
                 </div>
             </div>
 
             <!-- Barra de navegación -->
             <div class="flex justify-center px-2 mb-4 space-x-2">
-                <button class="tab-btn active" data-tab="videos">
-                    <i class="fas fa-video"></i>
+                <button class="tab-btn w-10 h-10 rounded-lg bg-slate-800/50 relative group transition-all duration-300"
+                    data-tab="videos">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+                    </div>
+                    <i
+                        class="fas fa-video text-white opacity-75 group-hover:opacity-100 transition-opacity duration-300"></i>
                 </button>
-                <button class="tab-btn" data-tab="rewards">
-                    <i class="fas fa-gift"></i>
+                <button class="tab-btn w-10 h-10 rounded-lg bg-slate-800/50 relative group transition-all duration-300"
+                    data-tab="rewards">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+                    </div>
+                    <i
+                        class="fas fa-gift text-white opacity-75 group-hover:opacity-100 transition-opacity duration-300"></i>
                 </button>
-                <button class="tab-btn" data-tab="achievements">
-                    <i class="fas fa-trophy"></i>
+                <button class="tab-btn w-10 h-10 rounded-lg bg-slate-800/50 relative group transition-all duration-300"
+                    data-tab="achievements">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+                    </div>
+                    <i
+                        class="fas fa-trophy text-white opacity-75 group-hover:opacity-100 transition-opacity duration-300"></i>
                 </button>
-                <button class="tab-btn" data-tab="ranking">
-                    <i class="fas fa-crown"></i>
+                <button class="tab-btn w-10 h-10 rounded-lg bg-slate-800/50 relative group transition-all duration-300"
+                    data-tab="ranking">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+                    </div>
+                    <i
+                        class="fas fa-crown text-white opacity-75 group-hover:opacity-100 transition-opacity duration-300"></i>
                 </button>
-                <button class="tab-btn" data-tab="summary">
-                    <i class="fas fa-user"></i>
+                <button class="tab-btn w-10 h-10 rounded-lg bg-slate-800/50 relative group transition-all duration-300"
+                    data-tab="summary">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg opacity-0 group-hover:opacity-20 transition-opacity duration-300">
+                    </div>
+                    <i
+                        class="fas fa-user text-white opacity-75 group-hover:opacity-100 transition-opacity duration-300"></i>
                 </button>
             </div>
         </div>
@@ -169,14 +220,32 @@
             <!-- Videos -->
             <div class="tab-content active p-4" id="videos-content">
                 <div class="video-group mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Mi Video:</h3>
+                    <h3 class="text-xl text-white mb-6 game-header">Mi video:</h3>
                     <div class="video-wrapper" id="local-video">
                         <video class="w-full h-48 bg-black rounded-lg object-cover" id="localVideo" autoplay
                             muted></video>
+                        <!-- Nuevos botones de control -->
+                        <div class="flex justify-center gap-3 mt-3">
+                            <button
+                                class="video-control-btn w-10 h-10 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-full transform transition-all duration-200 hover:scale-105"
+                                id="chat-button">
+                                <i class="fas fa-comment"></i>
+                            </button>
+                            <button
+                                class="video-control-btn w-10 h-10 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-full transform transition-all duration-200 hover:scale-105"
+                                id="mute-button">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button
+                                class="video-control-btn w-10 h-10 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white rounded-full transform transition-all duration-200 hover:scale-105"
+                                id="hide-button">
+                                <i class="fas fa-video"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div class="video-group mb-4">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-2">Otros Participantes:</h3>
+                    <h3 class="text-xl text-white mb-6 game-header">Otros participantes:</h3>
                     <div id="remote-videos">
                         <div class="space-y-4" id="videoContainer">
                             <!-- Videos remotos -->
@@ -187,34 +256,51 @@
 
             <!-- Otras pestañas -->
             <div class="tab-content hidden p-4" id="rewards-content">
-                <h2 class="text-xl font-bold mb-4">Recompensas</h2>
+                <h2 class="text-white text-xl mb-3 game-header">Recompensas</h2>
                 <div class="space-y-2" id="rewards-list">
-                    <p class="text-gray-500 text-sm">Cargando recompensas...</p>
+                    <p class="text-white text-sm game-header">Cargando recompensas...</p>
                 </div>
             </div>
 
             <div class="tab-content hidden p-4" id="achievements-content">
-                <h2 class="text-xl font-bold mb-4">Logros Disponibles</h2>
+                <h2 class="text-white text-xl mb-3 game-header">Logros Disponibles</h2>
                 <div class="space-y-2" id="achievements-list">
-                    <p class="text-gray-500 text-sm">Cargando logros...</p>
+                    <p class="text-white text-sm game-header">Cargando logros...</p>
                 </div>
             </div>
 
-            <div class="tab-content hidden p-4" id="ranking-content">
-                <h2 class="text-xl font-bold mb-4">Ranking</h2>
+            <div class="tab-content hidden p-2" id="ranking-content">
+                <h2 class="text-white text-xl mb-3 game-header">Ranking</h2>
                 <div class="space-y-2" id="ranking-list">
-                    <p class="text-gray-500 text-sm">Cargando ranking...</p>
+                    <p class="text-white text-sm game-header">Cargando ranking...</p>
                 </div>
             </div>
 
             <div class="tab-content" id="summary-content">
-                <h2 class="text-xl font-bold mb-4">Resumen Personal</h2>
-                <div class="bg-white p-4 rounded-lg shadow-md mb-6" id="user-summary">
-                    <p class="text-gray-500 text-sm">Cargando resumen...</p>
+                <h2 class="text-white text-xl mb-6 game-header">Resumen Personal</h2>
+                <!-- Contenedor con borde para el resumen -->
+                <div class="relative bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 rounded-lg mb-6">
+                    <div class="relative bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg"
+                        id="user-summary">
+                        <div
+                            class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20">
+                        </div>
+                        <div class="relative">
+                            <p class="text-white text-sm game-header">Cargando resumen...</p>
+                        </div>
+                    </div>
                 </div>
-                <h2 class="text-xl font-bold mb-4">Logros Desbloqueados:</h2>
-                <div class="bg-white p-4 rounded-lg shadow-md mt-6 grid grid-cols-4 gap-4 " id="user-achievements">
-                    <!-- Aquí se agregarán los logros dinámicamente -->
+
+                <h2 class="text-white text-xl mb-6 game-header">Logros Desbloqueados</h2>
+                <!-- Contenedor con borde para los logros -->
+                <div class="relative bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 rounded-lg">
+                    <div class="relative bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg grid grid-cols-4 gap-4 place-items-center"
+                        id="user-achievements">
+                        <div
+                            class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20">
+                        </div>
+                        <!-- Aquí se agregarán los logros dinámicamente -->
+                    </div>
                 </div>
             </div>
         </div>
@@ -269,7 +355,7 @@
             const nextButton = document.getElementById('next-problem');
 
             if (problems.length === 0) {
-                problemContent.innerHTML = `<p class="text-gray-500">No hay problemas disponibles.</p>`;
+                problemContent.innerHTML = `<p class="text-white game-text">No hay problemas disponibles.</p>`;
                 return;
             }
 
@@ -279,12 +365,12 @@
                     problem.dificultad === 'Intermedio' ? 'difficulty-medium' : 'difficulty-hard';
 
             problemContent.innerHTML = `
-        <div class="flex items-center gap-2">
-            <span class="problem-title">${problem.titulo}</span>
-        </div>
-        <span class="problem-description">${problem.descripcion}</span>
-        <span class="problem-difficulty ${difficultyClass}">${problem.dificultad}</span>
-    `;
+                <div class="flex items-center gap-2">
+                    <span class="problem-title">${problem.titulo}</span>
+                </div>
+                <span class="problem-description">${problem.descripcion}</span>
+                <span class="problem-difficulty ${difficultyClass}">${problem.dificultad}</span>
+            `;
 
             problemsContainer.setAttribute('data-problem-id', problem.id);
 
@@ -303,13 +389,13 @@
                     if (!response.ok) throw new Error('Error al obtener problemas.');
                     problems = await response.json();
                     if (problems.length === 0) {
-                        document.getElementById('problem-content').innerHTML = `<p class="text-gray-500">No hay problemas disponibles.</p>`;
+                        document.getElementById('problem-content').innerHTML = `<p class="text-white game-text">No hay problemas disponibles.</p>`;
                     } else {
                         updateProblemView();
                     }
                 } catch (error) {
                     console.error('Error cargando problemas:', error);
-                    document.getElementById('problem-content').innerHTML = `<p class="text-red-500">Error cargando problemas.</p>`;
+                    document.getElementById('problem-content').innerHTML = `<p class="text-red-500 game-text">Error cargando problemas.</p>`;
                 }
             };
 
@@ -346,58 +432,58 @@
 
                     if (recompensas.length === 0) {
                         rewardsList.innerHTML = `
-                    <div class="flex flex-col items-center justify-center p-4 text-center">
-                        <img src="/static/images/empty-chest.png" alt="No hay recompensas" class="w-16 h-16 mb-2 opacity-50">
-                        <p class="text-white text-sm font-medium">No hay recompensas disponibles</p>
-                        <p class="text-gray-400 text-xs">¡Vuelve más tarde!</p>
-                    </div>`;
+                        <div class="flex flex-col items-center justify-center p-4 text-center">
+                            <img src="/static/images/empty-chest.png" alt="No hay recompensas" class="w-16 h-16 mb-2 opacity-50">
+                            <p class="text-white text-sm font-medium game-header">No hay recompensas disponibles</p>
+                            <p class="text-gray-400 text-xs game-header">¡Vuelve más tarde!</p>
+                        </div>`;
                         return;
                     }
 
                     rewardsList.innerHTML = recompensas.map(recompensa => `
-                <div class="reward-card w-72 group">
-                    <div class="relative bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg border-2 border-slate-700 shadow-md hover:shadow-xl h-40 flex flex-col w-full">
-                        <!-- Header siempre visible -->
-                        <div class="mb-2">
-                            <h4 class="text-sm font-bold text-white tracking-tight leading-tight truncate">
-                                ${recompensa.nombre}
-                            </h4>
-                        </div>
+                    <div class="reward-card w-72 group">
+                        <div class="relative bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg border-2 border-slate-700 shadow-md hover:shadow-xl h-40 flex flex-col w-full">
+                            <!-- Header siempre visible -->
+                            <div class="mb-2">
+                                <h4 class="text-sm text-white tracking-tight leading-tight truncate game-text">
+                                    ${recompensa.nombre}
+                                </h4>
+                            </div>
 
-                        <!-- Content wrapper -->
-                        <div class="flex items-start gap-3">
-                            <!-- Description -->
-                            <p class="text-xs text-gray-300 line-clamp-2 flex-grow">
-                                ${recompensa.descripcion}
-                            </p>
-                            
-                            <!-- Reward Image with container similar to achievements -->
-                            <div class="flex-shrink-0">
-                                <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 transform group-hover:scale-110 transition-transform duration-300">
-                                    <div class="w-full h-full rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden">
-                                        <img 
-                                            src="/static/images/reward.png" 
-                                            alt="Reward" 
-                                            class="w-10 h-10 object-contain opacity-75 transition-all duration-300 group-hover:opacity-100 group-hover:animate-float"
-                                        >
+                            <!-- Content wrapper -->
+                            <div class="flex items-start gap-3">
+                                <!-- Description -->
+                                <p class="text-xs text-gray-300 line-clamp-2 flex-grow game-text">
+                                    ${recompensa.descripcion}
+                                </p>
+                                
+                                <!-- Reward Image with container similar to achievements -->
+                                <div class="flex-shrink-0">
+                                    <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 transform group-hover:scale-110 transition-transform duration-300">
+                                        <div class="w-full h-full rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden">
+                                            <img 
+                                                src="/static/images/reward.png" 
+                                                alt="Reward" 
+                                                class="w-10 h-10 object-contain opacity-75 transition-all duration-300 group-hover:opacity-100 group-hover:animate-float"
+                                            >
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Botón siempre en la misma posición -->
-                        <div class="absolute bottom-2 right-3">
-                            <button 
-                                class="redeem-btn bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full px-4 py-2 transform transition-all duration-200 flex items-center gap-2 text-xs"
-                                data-reward-id="${recompensa.id}"
-                                title="Canjear Recompensa"
-                            >
-                                Canjear por $${recompensa.costo_monedas} <img src="/static/images/dollar.png" alt="Monedas" class="w-5 h-5">
-                            </button>
+                            <!-- Botón siempre en la misma posición -->
+                            <div class="absolute bottom-2 right-3">
+                                <button 
+                                    class="redeem-btn bg-gradient-to-r from-indigo-500 to-purple-500 text-white rounded-full px-4 py-2 transform transition-all duration-200 flex items-center gap-2 text-xs game-text"
+                                    data-reward-id="${recompensa.id}"
+                                    title="Canjear Recompensa"
+                                >
+                                    Canjear por $${recompensa.costo_monedas} <img src="/static/images/dollar.png" alt="Monedas" class="w-5 h-5">
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            `).join('');
+                `).join('');
 
                     // Event listeners y demás código permanece igual...
                     document.querySelectorAll('.reward-card').forEach(card => {
@@ -420,7 +506,8 @@
 
                                 const result = await response.json();
                                 if (response.ok) {
-                                    showRewardSuccessPopup(result.mensaje);
+                                    // Usar el nuevo sistema de cola con prioridad 1
+                                    alertQueue.add(showRewardSuccessPopup, result.mensaje, window.closeRewardSuccessPopup, 2);
                                     await window.loadUserAchievements();
                                 } else {
                                     showRewardClaimedPopup(result.error);
@@ -435,15 +522,15 @@
                 } catch (error) {
                     console.error('Error cargando recompensas:', error);
                     rewardsList.innerHTML = `
-                <div class="text-center p-4">
-                    <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 mb-2">
-                        <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <p class="text-white text-sm font-medium">Error cargando recompensas</p>
-                    <p class="text-gray-400 text-xs mt-1">Intenta nuevamente más tarde</p>
-                </div>`;
+                    <div class="text-center p-4">
+                        <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-800 mb-2">
+                            <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <p class="text-white text-sm font-medium game-text">Error cargando recompensas</p>
+                        <p class="text-gray-400 text-xs mt-1 game-text">Intenta nuevamente más tarde</p>
+                    </div>`;
                 }
             };
 
@@ -462,71 +549,71 @@
 
                     if (logros.length === 0) {
                         achievementsList.innerHTML = `
-                    <div class="flex flex-col items-center justify-center p-8 text-center">
-                        <img src="/static/images/empty-trophy.png" alt="No hay logros" class="w-24 h-24 mb-4 opacity-50">
-                        <p class="text-white text-lg font-medium">No hay logros disponibles</p>
-                        <p class="text-white">¡Vuelve más tarde para nuevos desafíos!</p>
-                    </div>`;
+                        <div class="flex flex-col items-center justify-center p-8 text-center">
+                            <img src="/static/images/empty-trophy.png" alt="No hay logros" class="w-24 h-24 mb-4 opacity-50">
+                            <p class="text-white text-lg font-medium game-text">No hay logros disponibles</p>
+                            <p class="text-white game-text">¡Vuelve más tarde para nuevos desafíos!</p>
+                        </div>`;
                         return;
                     }
 
                     achievementsList.innerHTML = logros.map(logro => `
-<div class="achievement-card w-72 group transform transition-all duration-300 hover:scale-102">
-    <div class="relative w-full bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg shadow-lg hover:shadow-xl h-40">
-        <!-- Particles background -->
-        <div class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20"></div>
-        
-        <!-- Content container -->
-        <div class="relative h-full flex flex-col">
-            <!-- Header -->
-            <div class="mb-2">
-                <h4 class="text-sm font-bold text-white truncate pr-4">
-                    ${logro.nombre}
-                </h4>
-            </div>
+                    <div class="achievement-card w-72 group transform transition-all duration-300 hover:scale-102">
+                        <div class="relative w-full bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg shadow-lg hover:shadow-xl h-40">
+                            <!-- Particles background -->
+                            <div class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20"></div>
+                            
+                            <!-- Content container -->
+                            <div class="relative h-full flex flex-col">
+                                <!-- Header -->
+                                <div class="mb-2">
+                                    <h4 class="text-sm text-white truncate pr-4 game-text">
+                                        ${logro.nombre}
+                                    </h4>
+                                </div>
 
-            <!-- Content wrapper -->
-            <div class="flex-1 flex items-start gap-3 min-h-0">
-                <!-- Description con scroll -->
-                <div class="flex-grow overflow-y-auto pr-2">
-                    <p class="text-xs text-gray-300">
-                        ${logro.descripcion}
-                    </p>
-                </div>
-                
-                <!-- Achievement icon -->
-                <div class="relative flex-shrink-0">
-                    <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 transform group-hover:scale-110 transition-transform duration-300">
-                        <div class="w-full h-full rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden">
-                            <img 
-                                src="${logro.imagen_url}" 
-                                alt="${logro.nombre}" 
-                                class="w-12 h-12 object-contain opacity-75 transition-all duration-300 group-hover:opacity-100 group-hover:animate-float"
-                            >
+                                <!-- Content wrapper -->
+                                <div class="flex-1 flex items-start gap-3 min-h-0">
+                                    <!-- Description con scroll -->
+                                    <div class="flex-grow overflow-y-auto pr-2">
+                                        <p class="text-xs text-gray-300 game-text">
+                                            ${logro.descripcion}
+                                        </p>
+                                    </div>
+                                    
+                                    <!-- Achievement icon -->
+                                    <div class="relative flex-shrink-0">
+                                        <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 transform group-hover:scale-110 transition-transform duration-300">
+                                            <div class="w-full h-full rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden">
+                                                <img 
+                                                    src="${logro.imagen_url}" 
+                                                    alt="${logro.nombre}" 
+                                                    class="w-12 h-12 object-contain opacity-75 transition-all duration-300 group-hover:opacity-100 group-hover:animate-float"
+                                                >
+                                            </div>
+                                        </div>
+                                        <!-- Sparkle effect -->
+                                        <div class="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full animate-ping opacity-75"></div>
+                                        
+                                        <!-- Locked indicator -->
+                                        <div class="absolute -top-2 -right-2">
+                                            <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Progress bar always at bottom -->
+                                <div class="mt-2 w-full">
+                                    <div class="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
+                                        <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-0 group-hover:w-full transition-all duration-1000 ease-out"></div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <!-- Sparkle effect -->
-                    <div class="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full animate-ping opacity-75"></div>
-                    
-                    <!-- Locked indicator -->
-                    <div class="absolute -top-2 -right-2">
-                        <svg class="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                        </svg>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Progress bar always at bottom -->
-            <div class="mt-2 w-full">
-                <div class="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                    <div class="h-full bg-gradient-to-r from-indigo-500 to-purple-500 w-0 group-hover:w-full transition-all duration-1000 ease-out"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-            `).join('');
+                                `).join('');
 
                     // Add hover sound effect
                     document.querySelectorAll('.achievement-card').forEach(card => {
@@ -540,15 +627,15 @@
                 } catch (error) {
                     console.error('Error cargando logros:', error);
                     achievementsList.innerHTML = `
-                <div class="flex flex-col items-center justify-center p-8 text-center">
-                    <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
-                        <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                        </svg>
-                    </div>
-                    <p class="text-white text-lg font-medium">Error cargando logros</p>
-                    <p class="text-white mt-2">Intenta nuevamente más tarde</p>
-                </div>`;
+                    <div class="flex flex-col items-center justify-center p-8 text-center">
+                        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-100 mb-4">
+                            <svg class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <p class="text-white text-lg font-medium game-text">Error cargando logros</p>
+                        <p class="text-white mt-2 game-text">Intenta nuevamente más tarde</p>
+                    </div>`;
                 }
             };
 
@@ -567,41 +654,50 @@
 
                     if (ranking.length === 0) {
                         rankingList.innerHTML = `
-                    <div class="flex flex-col items-center justify-center p-8 text-center">
-                        <p class="text-gray-500 text-sm">No hay datos de ranking disponibles.</p>
-                    </div>`;
+                        <div class="flex flex-col items-center justify-center p-8 text-center">
+                            <p class="text-gray-500 text-sm game-text">No hay datos de ranking disponibles.</p>
+                        </div>`;
                         return;
                     }
 
-                    rankingList.innerHTML = ranking.map((user) => {
+                    rankingList.innerHTML = `
+                    <div class="flex flex-col gap-4">
+                        ${ranking.map((user) => {
                         const isFirstPlace = user.rank === 1;
 
                         return `
-                    <div class="ranking-card transform transition-all duration-300 mb-3 ${isFirstPlace ? 'hover:scale-102' : ''}">
-                        <div class="relative w-full h-24 bg-gradient-to-br ${isFirstPlace ? 'from-indigo-500 to-purple-500' : 'from-slate-800 to-slate-900'} p-4 rounded-lg shadow-lg hover:shadow-xl">
-                            <!-- Grid background -->
-                            <div class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20"></div>
-                            
-                            <!-- Content container -->
-                            <div class="relative flex items-center justify-between h-full">
-                                <div class="flex items-center gap-4">
-                                    <span class="text-2xl font-bold ${isFirstPlace ? 'text-white' : 'text-white-400'}">#${user.rank}</span>
-                                    <div>
-                                        <h4 class="text-white font-bold">${user.name}</h4>
-                                        <p class="text-gray-300 text-sm">Nivel: ${user.level}</p>
+                        <div class="ranking-card w-72 transform transition-all duration-300 group">
+                            <div class="relative w-full h-24 bg-gradient-to-br ${isFirstPlace ? 'from-indigo-500 to-purple-500' : 'from-slate-800 to-slate-900'} p-0.5 rounded-lg shadow-lg hover:shadow-xl">
+                                <div class="relative w-full h-full bg-slate-900 rounded-lg">
+                                    <!-- Grid background -->
+                                    <div class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20"></div>
+                                    
+                                    <!-- Hover gradient effect -->
+                                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg opacity-20 transition-opacity duration-300 group-hover:opacity-30"></div>
+                                    
+                                    <!-- Content container -->
+                                    <div class="relative flex items-center justify-between h-full p-4 border border-indigo-500/30 rounded-lg transition-colors duration-300 group-hover:border-indigo-500/50">
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-2xl game-title ${isFirstPlace ? 'text-white' : 'text-white-400'}">#${user.rank}</span>
+                                            <div>
+                                                <h4 class="text-white game-text">${user.name}</h4>
+                                                <p class="text-gray-300 text-sm game-text">Nivel: ${user.level}</p>
+                                            </div>
+                                        </div>
+                                        ${isFirstPlace ? `
+                                            <div class="relative">
+                                                <img src="/static/images/crown.png" alt="Primera posición" class="w-10 h-12 animate-bounce">
+                                                <div class="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
+                                            </div>
+                                        ` : ''}
                                     </div>
                                 </div>
-                                ${isFirstPlace ? `
-                                    <div class="relative">
-                                        <img src="/static/images/crown.png" alt="Primera posición" class="w-12 h-12 animate-bounce">
-                                        <div class="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-ping"></div>
-                                    </div>
-                                ` : ''}
                             </div>
                         </div>
-                    </div>
+                        `;
+                    }).join('')}
+                </div>
                 `;
-                    }).join('');
 
                     // Add hover sound for first place
                     const firstPlace = document.querySelector('.ranking-card');
@@ -613,12 +709,21 @@
                         });
                     }
 
+                    const otherPlaces = document.querySelectorAll('.ranking-card:not(:first-child)');
+                    otherPlaces.forEach(card => {
+                        card.addEventListener('mouseenter', () => {
+                            const hoverSound = new Audio('/static/sounds/hover.mp3');
+                            hoverSound.volume = 0.2;
+                            hoverSound.play().catch(() => { });
+                        });
+                    });
+
                 } catch (error) {
                     console.error('Error cargando ranking:', error);
                     rankingList.innerHTML = `
-                <div class="flex flex-col items-center justify-center p-8 text-center">
-                    <p class="text-red-500 text-sm">Error cargando ranking.</p>
-                </div>`;
+                    <div class="flex flex-col items-center justify-center p-8 text-center">
+                        <p class="text-red-500 text-sm game-text">Error cargando ranking.</p>
+                    </div>`;
                 }
             };
 
@@ -629,7 +734,6 @@
         });
     </script>
     <script>
-        // Función global para cargar logros
         window.loadUserAchievements = async () => {
             try {
                 const response = await fetch('/api/usuario/logros');
@@ -640,7 +744,10 @@
                 achievementsContainer.innerHTML = '';
 
                 if (achievements.length === 0) {
-                    achievementsContainer.innerHTML = '<p class="text-gray-500 text-sm col-span-4 text-center">Aún no tienes insignias.</p>';
+                    achievementsContainer.innerHTML = `
+                    <div class="col-span-4 text-center py-4">
+                        <p class="text-white text-sm game-text">Aún no has desbloqueado ningún logro.</p>
+                    </div>`;
                     return;
                 }
 
@@ -649,13 +756,15 @@
                         const img = new Image();
                         img.onload = () => {
                             const achievementBadge = document.createElement('div');
-                            achievementBadge.className = "achievement-badge flex justify-center items-center";
+                            achievementBadge.className = "achievement-badge group relative flex items-center justify-center";
                             achievementBadge.innerHTML = `
-                            <img src="${achievement.imagen_url}" 
-                                 alt="${achievement.nombre}" 
-                                 class="w-16 h-16 object-contain" 
-                                 title="${achievement.nombre}">
-                        `;
+                            <div class="w-14 h-14 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 transform group-hover:scale-110 transition-transform duration-300 flex items-center justify-center">
+                                <div class="w-full h-full rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden">
+                                    <img src="${achievement.imagen_url}" 
+                                        alt="${achievement.nombre}" 
+                                        class="w-10 h-10 object-contain opacity-75 transition-all duration-300 group-hover:opacity-100">
+                                </div>
+                            </div>`;
                             achievementsContainer.appendChild(achievementBadge);
                             resolve();
                         };
@@ -670,8 +779,35 @@
                 await Promise.all(achievements.map(loadImage));
             } catch (error) {
                 console.error('Error al cargar logros del usuario:', error);
-                achievementsContainer.innerHTML = '<p class="text-red-500 text-sm col-span-4 text-center">Error al cargar los logros.</p>';
+                achievementsContainer.innerHTML = `
+                <div class="col-span-4 text-center py-4">
+                    <p class="text-red-500 text-sm game-text">Error al cargar los logros.</p>
+                </div>`;
             }
+        };
+
+        // Función para calcular XP total para el siguiente nivel
+        const getNextLevelXP = (level) => 100 * Math.pow(2, level);
+
+        // Función para calcular porcentaje de progreso
+        const getLevelProgress = (currentXP, level) => {
+            const nextLevelXP = getNextLevelXP(level);
+            const progress = (currentXP / nextLevelXP) * 100;
+            return Math.min(Math.max(progress, 0), 100);
+        };
+
+        // Función para obtener la imagen según el título
+        const getTitleIcon = (title) => {
+            const titleIcons = {
+                'Principiante': '/static/images/principiante.png',
+                'Guerrero': '/static/images/guerrero.png',
+                'Héroe': '/static/images/heroe.png',
+                'Maestro': '/static/images/maestro.png',
+                'Leyenda': '/static/images/leyenda.png',
+                'Sabio': '/static/images/sabio.png'
+            };
+
+            return titleIcons[title] || 'principiante.png';
         };
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -682,18 +818,75 @@
                     const response = await fetch('/api/usuario/perfil');
                     if (!response.ok) throw new Error('Error al obtener el resumen personal.');
                     const user = await response.json();
+                    const userTitle = user.titulo_actual || 'Principiante';
+                    const titleIcon = getTitleIcon(userTitle);
 
                     userSummary.innerHTML = `
-                    <div>
-                        <h3 class="text-lg font-bold text-gray-800">Nombre: ${user.name}</h3>
-                        <p class="text-sm text-gray-600">Nivel: ${user.level}</p>
-                        <p class="text-sm text-gray-600">Experiencia: ${user.experience}</p>
-                        <p class="text-sm text-gray-600">Monedas: ${user.coins}</p>
-                        <p class="text-sm text-gray-600">Título actual: ${user.titulo_actual}</p>
+                    <div class="w-full transform transition-all duration-300">
+                        <div class="relative bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg shadow-lg hover:shadow-xl">
+                            <div class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20"></div>
+                            
+                            <div class="relative space-y-4">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5  group transition-all duration-300 hover:scale-105">
+                                        <div class="w-full h-full rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden relative">
+                                            <img src="${titleIcon}" 
+                                                alt="${userTitle}"
+                                                class="title-icon w-10 h-10 object-contain opacity-75 transition-all duration-300 group-hover:opacity-100 group-hover:scale-110">
+                                                <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/0 to-purple-500/0 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <h3 class="text-xl text-white game-text">${user.name}</h3>
+                                        <p class="text-sm text-white game-text">${userTitle}</p>
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="relative col-span-2 group">
+                                        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg opacity-20 transition-opacity duration-300 group-hover:opacity-30"></div>
+                                        <div class="relative rounded-lg p-3 border border-indigo-500/30 transition-colors duration-300 group-hover:border-indigo-500/50">
+                                            <div class="flex items-center justify-between mb-2">
+                                                <div class="flex items-center gap-2">
+                                                    <i class="fas fa-star text-yellow-500"></i>
+                                                    <span class="text-sm font-medium text-white game-text">Nivel: ${user.level}</span>
+                                                </div>
+                                                <span class="text-sm text-white game-text">${user.experience} / ${getNextLevelXP(user.level)} XP</span>
+                                            </div>
+                                            <div class="w-full bg-slate-700/50 rounded-full h-1.5">
+                                                <div class="bg-gradient-to-r from-yellow-500 to-purple-500 h-1.5 rounded-full"
+                                                        style="width: ${getLevelProgress(user.experience, user.level)}%">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="relative group">
+                                    <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg opacity-20 transition-opacity duration-300 group-hover:opacity-30"></div>
+                                    <div class="relative rounded-lg p-4 border border-indigo-500/30 transition-colors duration-300 group-hover:border-indigo-500/50">
+                                        <div class="flex items-center justify-between">
+                                            <div class="flex items-center gap-2">
+                                                <div class="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                                                    <i class="fas fa-coins text-yellow-500"></i>
+                                                </div>
+                                                <span class="text-sm font-medium text-white game-text">Monedas:</span>
+                                            </div>
+                                            <p class="text-xl font-bold text-white game-text">$${user.coins}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full animate-ping opacity-75"></div>
+                        </div>
                     </div>`;
                 } catch (error) {
                     console.error('Error cargando resumen personal:', error);
-                    userSummary.innerHTML = `<p class="text-red-500 text-sm">Error cargando resumen personal.</p>`;
+                    userSummary.innerHTML = `
+                    <div class="w-72 p-4 bg-red-50 rounded-lg border border-red-200">
+                        <p class="text-red-500 text-sm text-center game-text">Error cargando resumen personal.</p>
+                    </div>`;
                 }
             };
 
@@ -748,40 +941,112 @@
     </script>
     <script src="/socket.io/socket.io.js"></script>
     <script>
+        const alertQueue = {
+            queue: [],
+            isDisplaying: false,
+            displayDuration: 5000,
+            transitionDelay: 500,
+
+            add: function (alertFunction, params, closeFunction, priority = 1) {
+                const alertItem = {
+                    func: alertFunction,
+                    params: params,
+                    closeFunc: closeFunction,
+                    timestamp: Date.now(),
+                    priority: priority,
+                    id: Math.random().toString(36).substr(2, 9)
+                };
+
+                this.queue.push(alertItem);
+                this.processQueue();
+            },
+
+            processQueue: function () {
+                if (this.isDisplaying || this.queue.length === 0) return;
+
+                this.isDisplaying = true;
+                const currentAlert = this.queue.shift();
+
+                const showAlert = () => {
+                    currentAlert.func(currentAlert.params);
+
+                    setTimeout(() => {
+                        if (currentAlert.closeFunc) {
+                            currentAlert.closeFunc();
+                        }
+                        this.isDisplaying = false;
+
+                        setTimeout(() => {
+                            this.processQueue();
+                        }, this.transitionDelay);
+
+                    }, this.displayDuration);
+                };
+
+                const delay = Date.now() - currentAlert.timestamp;
+                if (delay > 10000 && currentAlert.priority === 0) {
+                    this.isDisplaying = false;
+                    this.processQueue();
+                    return;
+                }
+
+                showAlert();
+            },
+
+            clear: function () {
+                this.queue = [];
+                this.isDisplaying = false;
+            }
+        };
+    </script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const socket = io();
 
             let userId = null;
-            function closeAchievementPopup() {
+            window.closeAchievementPopup = function () {
                 const popup = document.getElementById('achievement-popup');
                 const content = document.getElementById('achievement-content');
+                const trophyImage = document.querySelector('#achievement-content img');
+
+                trophyImage.style.animation = 'none';
+
                 content.classList.remove('scale-100');
                 content.classList.add('scale-0');
+
                 setTimeout(() => {
                     popup.classList.add('hidden');
+                    trophyImage.style.animation = '';
                 }, 200);
-            }
+            };
 
             function showAchievementPopup(achievement) {
                 const popup = document.getElementById('achievement-popup');
                 const content = document.getElementById('achievement-content');
                 const nameElement = document.getElementById('achievement-name');
                 const descriptionElement = document.getElementById('achievement-description');
+                const trophyImage = document.querySelector('#achievement-content img');
+
+                trophyImage.style.animation = 'none';
+                void trophyImage.offsetWidth;
+                trophyImage.style.animation = 'achievementTrophyPulse 1.5s infinite';
+
+                const achievementSound = new Audio('/static/sounds/logro.mp3');
+                achievementSound.volume = 0.7;
+                achievementSound.play().catch(error => {
+                    console.error('Error al reproducir el sonido:', error);
+                });
 
                 nameElement.textContent = achievement.name || 'Nuevo Logro';
                 descriptionElement.textContent = achievement.description || 'Has desbloqueado un nuevo logro';
 
                 popup.classList.remove('hidden');
-                // Pequeño delay para la animación
+
                 setTimeout(() => {
                     content.classList.remove('scale-0');
                     content.classList.add('scale-100');
-                    // Iniciar confeti
                     startConfetti();
                 }, 10);
-
-                // Cerrar automáticamente después de 5 segundos
-                setTimeout(closeAchievementPopup, 5000);
             }
 
             function startConfetti() {
@@ -855,24 +1120,39 @@
                 .then((data) => {
                     userId = data.id;
 
-                    let pendingLevelUpAlert = null;
-
                     // Función para cerrar el popup
-                    function closeLevelUpPopup() {
+                    window.closeLevelUpPopup = function () {
                         const popup = document.getElementById('level-up-popup');
                         const content = document.getElementById('level-up-content');
+                        const levelUpImage = document.querySelector('#level-up-content img');
+
+                        levelUpImage.style.animation = 'none';
+
                         content.classList.remove('scale-100');
                         content.classList.add('scale-0');
+
                         setTimeout(() => {
                             popup.classList.add('hidden');
+                            levelUpImage.style.animation = '';
                         }, 200);
-                    }
+                    };
 
                     // Función para mostrar el popup
                     function showLevelUpPopup(newLevel) {
                         const popup = document.getElementById('level-up-popup');
                         const content = document.getElementById('level-up-content');
                         const levelElement = document.getElementById('new-level-number');
+                        const levelUpImage = document.querySelector('#level-up-content img');
+
+                        levelUpImage.style.animation = 'none';
+                        void levelUpImage.offsetWidth;
+                        levelUpImage.style.animation = 'levelUpImagePulse 1.5s infinite';
+
+                        const levelUpSound = new Audio('/static/sounds/nivel.mp3');
+                        levelUpSound.volume = 0.7;
+                        levelUpSound.play().catch(error => {
+                            console.error('Error al reproducir el sonido:', error);
+                        });
 
                         levelElement.textContent = newLevel;
                         popup.classList.remove('hidden');
@@ -882,8 +1162,6 @@
                             content.classList.add('scale-100');
                             startFireworks();
                         }, 10);
-
-                        setTimeout(closeLevelUpPopup, 5000);
                     }
 
                     function startFireworks() {
@@ -936,9 +1214,8 @@
                                 const popup = document.getElementById('level-up-content');
                                 const popupRect = popup.getBoundingClientRect();
 
-                                // Posicionar los fuegos artificiales alrededor del popup
-                                this.x = popupRect.x + Math.random() * popupRect.width;
-                                this.y = popupRect.y + Math.random() * popupRect.height;
+                                this.x = Math.random() * window.innerWidth;
+                                this.y = Math.random() * window.innerHeight;
 
                                 this.particles = [];
                                 this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
@@ -979,8 +1256,8 @@
                         const fireworkInterval = 15; // Intervalo entre explosiones
 
                         function animate() {
-                            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
-                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            // Limpiar el canvas en cada frame en lugar de crear un fondo negro
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
                             // Crear nuevos fuegos artificiales periódicamente
                             if (frame % fireworkInterval === 0 && fireworks.length < maxFireworks) {
@@ -1012,11 +1289,11 @@
                     }
 
                     socket.on(`user-level-up-${userId}`, ({ newLevel }) => {
-                        showLevelUpPopup(newLevel);
+                        alertQueue.add(showLevelUpPopup, newLevel, window.closeLevelUpPopup, 2);
                     });
 
                     socket.on(`achievement-unlocked-${userId}`, async (achievement) => {
-                        showAchievementPopup(achievement);
+                        alertQueue.add(showAchievementPopup, achievement, window.closeAchievementPopup, 1);
                         await window.loadUserAchievements();
                     });
 
@@ -1027,23 +1304,72 @@
                     });
 
                     socket.on(`user-stats-updated-${userId}`, async (updatedUser) => {
-                        console.log('Actualización de estadísticas del usuario:', updatedUser);
-
-                        // Recargar el perfil completo del usuario
                         try {
                             const response = await fetch('/api/usuario/perfil');
-                            if (!response.ok) throw new Error('Error al obtener el perfil del usuario');
+                            if (!response.ok) throw new Error('Error al obtener el perfil');
                             const user = await response.json();
 
                             const userSummary = document.getElementById('user-summary');
                             userSummary.innerHTML = `
-                                <div>
-                                    <h3 class="text-lg font-bold text-gray-800">Nombre: ${user.name}</h3>
-                                    <p class="text-sm text-gray-600">Nivel: ${user.level}</p>
-                                    <p class="text-sm text-gray-600">Experiencia: ${user.experience}</p>
-                                    <p class="text-sm text-gray-600">Monedas: ${user.coins}</p>
-                                    <p class="text-sm text-gray-600">Título actual: ${user.titulo_actual || 'Principiante'}</p>
-                                </div>`;
+                            <div class="w-full transform transition-all duration-300">
+                                <div class="relative bg-gradient-to-br from-slate-800 to-slate-900 p-4 rounded-lg shadow-lg hover:shadow-xl">
+                                    <div class="absolute inset-0 bg-grid-slate-700/25 bg-[size:1.5rem_1.5rem] rounded-lg opacity-20"></div>
+                                    
+                                    <div class="relative space-y-4">
+                                        <div class="flex items-center gap-2">
+                                            <div class="w-16 h-16 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-500 p-0.5 group transition-all duration-300 hover:scale-105">
+                                                <div class="w-full h-full rounded-lg bg-slate-900 flex items-center justify-center overflow-hidden relative">
+                                                    <img src="${getTitleIcon(user.titulo_actual || 'Principiante')}" 
+                                                        alt="${user.titulo_actual || 'Principiante'}"
+                                                        class="title-icon w-10 h-10 object-contain opacity-75 transition-all duration-300 group-hover:opacity-100 group-hover:scale-110">
+                                                    <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/0 to-purple-500/0 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                <h3 class="text-xl text-white game-text">${user.name}</h3>
+                                                <p class="text-sm text-white game-text">${user.titulo_actual || 'Principiante'}</p>
+                                            </div>
+                                        </div>
+
+                                        <div class="grid grid-cols-2 gap-3">
+                                            <div class="relative col-span-2 group">
+                                                <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg opacity-20 transition-opacity duration-300 group-hover:opacity-30"></div>
+                                                <div class="relative rounded-lg p-3 border border-indigo-500/30 transition-colors duration-300 group-hover:border-indigo-500/50">
+                                                    <div class="flex items-center justify-between mb-2">
+                                                        <div class="flex items-center gap-2">
+                                                            <i class="fas fa-star text-yellow-500"></i>
+                                                            <span class="text-sm font-medium text-white game-text">Nivel: ${user.level}</span>
+                                                        </div>
+                                                        <span class="text-sm text-white game-text">${user.experience} / ${getNextLevelXP(user.level)} XP</span>
+                                                    </div>
+                                                    <div class="w-full bg-slate-700/50 rounded-full h-1.5">
+                                                        <div class="bg-gradient-to-r from-yellow-500 to-purple-500 h-1.5 rounded-full"
+                                                                style="width: ${getLevelProgress(user.experience, user.level)}%">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="relative group">
+                                            <div class="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-lg opacity-20 transition-opacity duration-300 group-hover:opacity-30"></div>
+                                            <div class="relative rounded-lg p-4 border border-indigo-500/30 transition-colors duration-300 group-hover:border-indigo-500/50">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="flex items-center gap-2">
+                                                        <div class="w-8 h-8 rounded-full bg-yellow-500/20 flex items-center justify-center">
+                                                            <i class="fas fa-coins text-yellow-500"></i>
+                                                        </div>
+                                                        <span class="text-sm font-medium text-white game-text">Monedas:</span>
+                                                    </div>
+                                                    <p class="text-xl font-bold text-white game-text">$${user.coins}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="absolute -top-1 -right-1 w-2 h-2 bg-purple-500 rounded-full animate-ping opacity-75"></div>
+                                </div>
+                            </div>`;
                         } catch (error) {
                             console.error('Error actualizando perfil:', error);
                         }
@@ -1053,12 +1379,6 @@
                     closePopupButton.addEventListener('click', () => {
                         const evaluationPopup = document.getElementById('evaluation-popup');
                         evaluationPopup.classList.add('hidden');
-
-                        // Mostrar la alerta de subida de nivel si está pendiente
-                        if (pendingLevelUpAlert) {
-                            alert(pendingLevelUpAlert);
-                            pendingLevelUpAlert = null; // Limpiar la alerta pendiente
-                        }
                     });
                 })
                 .catch((err) => {
@@ -1072,14 +1392,14 @@
                 rankingList.innerHTML = updatedRanking
                     .map(
                         (user) => `
-              <div class="ranking-card flex items-center p-2 border rounded-lg bg-white shadow-md">
-                  <span class="text-sm font-bold text-gray-800 w-10 text-center">#${user.rank}</span>
-                  <div class="flex-grow">
-                      <h4 class="text-sm font-bold text-gray-800">${user.name}</h4>
-                      <p class="text-xs text-gray-600">Nivel: ${user.level}, Experiencia: ${user.experience}</p>
-                  </div>
-              </div>
-            `
+                        <div class="ranking-card w-72 flex items-center p-2 border rounded-lg bg-white shadow-md">
+                            <span class="text-sm font-bold text-gray-800 w-10 text-center">#${user.rank}</span>
+                            <div class="flex-grow">
+                                <h4 class="text-sm font-bold text-gray-800 game-text">${user.name}</h4>
+                                <p class="text-xs text-gray-600 game-text">Nivel: ${user.level}</p>
+                            </div>
+                        </div>
+                        `
                     )
                     .join('');
             });
@@ -1176,10 +1496,10 @@
             <div class="flex items-center gap-8">
                 <img class="w-24 h-24 object-contain" src="/static/images/trophy.png" alt="Trophy">
                 <div class="flex-1">
-                    <h3 class="text-3xl font-bold text-gray-800 mb-4">¡Logro Desbloqueado!</h3>
+                    <h3 class="text-3xl text-gray-800 mb-4 game-title">¡Logro Desbloqueado!</h3>
                     <div id="achievement-info">
-                        <p class="font-semibold text-xl text-indigo-600 mb-2" id="achievement-name"></p>
-                        <p class="text-lg text-gray-600" id="achievement-description"></p>
+                        <p class="text-xl text-indigo-600 mb-2 game-header" id="achievement-name"></p>
+                        <p class="text-lg text-gray-600 game-text" id="achievement-description"></p>
                     </div>
                 </div>
             </div>
@@ -1193,18 +1513,19 @@
 
     <!-- Level Up Popup -->
     <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50" id="level-up-popup">
-        <!-- Canvas debe estar antes del contenido para estar detrás -->
-        <canvas class="fixed inset-0 pointer-events-none w-full h-full" id="fireworks-canvas"></canvas>
-
         <div class="relative bg-white w-[600px] p-8 rounded-xl shadow-2xl transform transition-all scale-0"
             id="level-up-content">
+            <!-- Canvas dentro del contenedor blanco -->
+            <canvas class="fixed inset-0 pointer-events-none z-50 w-full h-full" id="fireworks-canvas"></canvas>
+
             <div class="flex items-center gap-8">
                 <img class="w-24 h-24 object-contain" src="/static/images/level-up.png" alt="Level Up">
                 <div class="flex-1">
-                    <h3 class="text-3xl font-bold text-indigo-600 mb-4">¡Has Subido de Nivel!</h3>
+                    <h3 class="text-3xl game-title text-indigo-600 mb-4">¡Has Subido de Nivel!</h3>
                     <div id="level-up-info">
-                        <p class="text-xl font-bold text-gray-800 mb-2">Nivel <span id="new-level-number"></span></p>
-                        <p class="text-lg text-gray-600">¡Sigue así! Cada vez estás más cerca de convertirte en un
+                        <p class="text-xl game-header text-gray-800 mb-2">Nivel <span id="new-level-number"></span></p>
+                        <p class="text-lg text-gray-600 game-text">¡Sigue así! Cada vez estás más cerca de convertirte
+                            en un
                             maestro.</p>
                     </div>
                 </div>
@@ -1225,9 +1546,9 @@
             <div class="flex items-center gap-8">
                 <img class="w-24 h-24 object-contain" src="/static/images/out-of-stock.png" alt="Already Claimed">
                 <div class="flex-1">
-                    <h3 class="text-3xl font-bold text-gray-800 mb-4">Recompensa No Disponible</h3>
+                    <h3 class="text-3xl text-gray-800 mb-4 game-title">Recompensa No Disponible</h3>
                     <div id="reward-claimed-info">
-                        <p class="text-lg text-gray-600" id="reward-claimed-message"></p>
+                        <p class="text-lg text-gray-600 game-text" id="reward-claimed-message"></p>
                     </div>
                 </div>
             </div>
@@ -1244,6 +1565,16 @@
             const popup = document.getElementById('reward-claimed-popup');
             const content = document.getElementById('reward-claimed-content');
             const messageElement = document.getElementById('reward-claimed-message');
+            const claimedImage = document.querySelector('#reward-claimed-content img');
+
+            // Reproducir el sonido de error
+            const errorSound = new Audio('/static/sounds/mal.mp3');
+            errorSound.play().catch(error => {
+                console.error('Error al reproducir el sonido:', error);
+            });
+
+            // Añadir animación de sacudida a la imagen
+            claimedImage.style.animation = 'rewardClaimedShake 0.5s ease-in-out';
 
             messageElement.textContent = message;
             popup.classList.remove('hidden');
@@ -1252,17 +1583,26 @@
                 content.classList.remove('scale-0');
                 content.classList.add('scale-100');
             }, 10);
+
+            // Cerrar automáticamente después de 3 segundos (tiempo más corto para error)
+            setTimeout(closeRewardClaimedPopup, 5000);
         }
 
         function closeRewardClaimedPopup() {
             const popup = document.getElementById('reward-claimed-popup');
             const content = document.getElementById('reward-claimed-content');
+            const claimedImage = document.querySelector('#reward-claimed-content img');
+
+            // Detener la animación de sacudida
+            claimedImage.style.animation = 'none';
 
             content.classList.remove('scale-100');
             content.classList.add('scale-0');
 
             setTimeout(() => {
                 popup.classList.add('hidden');
+                // Restaurar la capacidad de animar para la próxima vez
+                claimedImage.style.animation = '';
             }, 200);
         }
     </script>
@@ -1278,9 +1618,9 @@
             <div class="flex items-center gap-8">
                 <img class="w-24 h-24 object-contain" src="/static/images/reward.png" alt="Reward">
                 <div class="flex-1">
-                    <h3 class="text-3xl font-bold text-gray-800 mb-4">¡Recompensa Canjeada!</h3>
+                    <h3 class="text-3xl text-gray-800 mb-4 game-title">¡Recompensa Canjeada!</h3>
                     <div id="reward-success-info">
-                        <p class="text-lg text-gray-600" id="reward-success-message"></p>
+                        <p class="text-lg text-gray-600 game-text" id="reward-success-message"></p>
                     </div>
                 </div>
             </div>
@@ -1293,10 +1633,39 @@
     </div>
 
     <script>
+        window.closeRewardSuccessPopup = function () {
+            const popup = document.getElementById('reward-success-popup');
+            const content = document.getElementById('reward-success-content');
+            const rewardImage = document.querySelector('#reward-success-content img');
+
+            rewardImage.style.animation = 'none';
+
+            content.classList.remove('scale-100');
+            content.classList.add('scale-0');
+
+            setTimeout(() => {
+                popup.classList.add('hidden');
+                rewardImage.style.animation = '';
+            }, 200);
+        };
+
         function showRewardSuccessPopup(message) {
             const popup = document.getElementById('reward-success-popup');
             const content = document.getElementById('reward-success-content');
             const messageElement = document.getElementById('reward-success-message');
+            const rewardImage = document.querySelector('#reward-success-content img');
+
+            // Limpiar cualquier animación previa
+            rewardImage.style.animation = 'none';
+            void rewardImage.offsetWidth; // Forzar reflow
+            rewardImage.style.animation = 'rewardIconPulse 1.5s infinite';
+
+            // Reproducir el sonido de recompensa con volumen ajustado
+            const rewardSound = new Audio('/static/sounds/recompensa.mp3');
+            rewardSound.volume = 0.7;
+            rewardSound.play().catch(error => {
+                console.error('Error al reproducir el sonido:', error);
+            });
 
             messageElement.textContent = message;
             popup.classList.remove('hidden');
@@ -1306,21 +1675,6 @@
                 content.classList.add('scale-100');
                 startRewardConfetti();
             }, 10);
-
-            // Cerrar automáticamente después de 5 segundos
-            setTimeout(closeRewardSuccessPopup, 5000);
-        }
-
-        function closeRewardSuccessPopup() {
-            const popup = document.getElementById('reward-success-popup');
-            const content = document.getElementById('reward-success-content');
-
-            content.classList.remove('scale-100');
-            content.classList.add('scale-0');
-
-            setTimeout(() => {
-                popup.classList.add('hidden');
-            }, 200);
         }
 
         function startRewardConfetti() {
@@ -1382,6 +1736,212 @@
 
             animate();
         }
+    </script>
+
+    <!-- Error Popup -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50" id="error-popup">
+        <div class="relative bg-white w-[600px] p-8 rounded-xl shadow-2xl transform transition-all scale-0"
+            id="error-content">
+            <div class="flex items-center gap-8">
+                <img class="w-24 h-24 object-contain" src="/static/images/error.png" alt="Error">
+                <div class="flex-1">
+                    <h3 class="text-3xl game-title text-gray-800 mb-4">Error</h3>
+                    <div id="error-info">
+                        <p class="text-lg text-gray-600 game-text" id="error-message"></p>
+                    </div>
+                </div>
+            </div>
+
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+                onclick="closeErrorPopup()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Correct Answer Popup -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
+        id="correct-answer-popup">
+        <div class="relative bg-white w-[600px] p-8 rounded-xl shadow-2xl transform transition-all scale-0"
+            id="correct-answer-content">
+            <div class="flex items-center gap-8">
+                <img class="w-24 h-24 object-contain" src="/static/images/good-game.png" alt="Success">
+                <div class="flex-1">
+                    <h3 class="text-3xl game-title text-emerald-600 mb-4">¡Excelente trabajo!</h3>
+                    <div id="correct-answer-info">
+                        <p class="text-lg text-gray-600 game-header" id="correct-answer-message"></p>
+                        <p class="text-lg text-gray-600 mt-2 game-text" id="rewards-message"></p>
+                    </div>
+                </div>
+            </div>
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+                onclick="closeCorrectAnswerPopup()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Incorrect Answer Popup -->
+    <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50"
+        id="incorrect-answer-popup">
+        <div class="relative bg-white w-[600px] p-8 rounded-xl shadow-2xl transform transition-all scale-0"
+            id="incorrect-answer-content">
+            <div class="flex items-center gap-8">
+                <img class="w-24 h-24 object-contain" src="/static/images/nice-try.png" alt="Try Again">
+                <div class="flex-1">
+                    <h3 class="text-3xl text-amber-600 mb-4 game-title">¡Sigue intentando!</h3>
+                    <div id="incorrect-answer-info">
+                        <p class="text-lg text-gray-600 game-text" id="incorrect-answer-message"></p>
+                    </div>
+                </div>
+            </div>
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl"
+                onclick="closeIncorrectAnswerPopup()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        window.closeErrorPopup = function () {
+            const popup = document.getElementById('error-popup');
+            const content = document.getElementById('error-content');
+            const errorImage = document.querySelector('#error-content img');
+
+            errorImage.style.animation = 'none';
+
+            content.classList.remove('scale-100');
+            content.classList.add('scale-0');
+
+            setTimeout(() => {
+                popup.classList.add('hidden');
+                errorImage.style.animation = '';
+            }, 200);
+        };
+
+        function showErrorPopup(message) {
+            alertQueue.add((msg) => {
+                const popup = document.getElementById('error-popup');
+                const content = document.getElementById('error-content');
+                const messageElement = document.getElementById('error-message');
+                const errorImage = document.querySelector('#error-content img');
+
+                // Limpiar cualquier animación previa
+                errorImage.style.animation = 'none';
+                void errorImage.offsetWidth;
+                errorImage.style.animation = 'rewardClaimedShake 0.5s ease-in-out';
+
+                // Reproducir el sonido de error
+                const errorSound = new Audio('/static/sounds/mal.mp3');
+                errorSound.volume = 0.7;
+                errorSound.play().catch(error => {
+                    console.error('Error al reproducir el sonido:', error);
+                });
+
+                messageElement.textContent = msg;
+                popup.classList.remove('hidden');
+
+                setTimeout(() => {
+                    content.classList.remove('scale-0');
+                    content.classList.add('scale-100');
+                }, 10);
+            }, message, window.closeErrorPopup, 1);
+        }
+
+        // Hacer la función disponible globalmente
+        window.showErrorPopup = showErrorPopup; 
+    </script>
+
+    <script>
+        window.closeCorrectAnswerPopup = function () {
+            const popup = document.getElementById('correct-answer-popup');
+            const content = document.getElementById('correct-answer-content');
+            const successImage = document.querySelector('#correct-answer-content img');
+
+            successImage.style.animation = 'none';
+
+            content.classList.remove('scale-100');
+            content.classList.add('scale-0');
+
+            setTimeout(() => {
+                popup.classList.add('hidden');
+                successImage.style.animation = '';
+            }, 200);
+        };
+
+        window.closeIncorrectAnswerPopup = function () {
+            const popup = document.getElementById('incorrect-answer-popup');
+            const content = document.getElementById('incorrect-answer-content');
+            const tryAgainImage = document.querySelector('#incorrect-answer-content img');
+
+            tryAgainImage.style.animation = 'none';
+
+            content.classList.remove('scale-100');
+            content.classList.add('scale-0');
+
+            setTimeout(() => {
+                popup.classList.add('hidden');
+                tryAgainImage.style.animation = '';
+            }, 200);
+        };
+
+        function showCorrectAnswerPopup(result) {
+            alertQueue.add((data) => {
+                const popup = document.getElementById('correct-answer-popup');
+                const content = document.getElementById('correct-answer-content');
+                const successImage = document.querySelector('#correct-answer-content img');
+                const messageElement = document.getElementById('correct-answer-message');
+                const rewardsElement = document.getElementById('rewards-message');
+
+                // Limpiar animación previa
+                successImage.style.animation = 'none';
+                void successImage.offsetWidth;
+                successImage.style.animation = 'levelUpImagePulse 1.5s infinite';
+
+                // Reproducir sonido
+                const correctSound = new Audio('/static/sounds/correcto.mp3');
+                correctSound.volume = 0.7;
+                correctSound.play().catch(console.error);
+
+                messageElement.textContent = '¡Felicitaciones! Tu respuesta es correcta.';
+                rewardsElement.textContent = `Has ganado ${data.experienciaOtorgada} XP y ${data.monedasOtorgadas} monedas.`;
+
+                popup.classList.remove('hidden');
+
+                setTimeout(() => {
+                    content.classList.remove('scale-0');
+                    content.classList.add('scale-100');
+                }, 10);
+            }, result, window.closeCorrectAnswerPopup, 2);
+        }
+
+        function showIncorrectAnswerPopup() {
+            alertQueue.add((msg) => {
+                const popup = document.getElementById('incorrect-answer-popup');
+                const content = document.getElementById('incorrect-answer-content');
+                const tryAgainImage = document.querySelector('#incorrect-answer-content img');
+                const messageElement = document.getElementById('incorrect-answer-message');
+
+                // Limpiar animación previa
+                tryAgainImage.style.animation = 'none';
+                void tryAgainImage.offsetWidth;
+                tryAgainImage.style.animation = 'levelUpImagePulse 1.5s infinite';
+
+                // Reproducir sonido
+                const notificationSound = new Audio('/static/sounds/notificacion.mp3');
+                notificationSound.volume = 0.7;
+                notificationSound.play().catch(console.error);
+
+                messageElement.textContent = '¡No te rindas! Revisa tu respuesta e inténtalo nuevamente.';
+
+                popup.classList.remove('hidden');
+
+                setTimeout(() => {
+                    content.classList.remove('scale-0');
+                    content.classList.add('scale-100');
+                }, 10);
+            }, null, window.closeIncorrectAnswerPopup, 2);
+        } 
     </script>
 
 </body>
